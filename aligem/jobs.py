@@ -30,10 +30,6 @@ def exec_alien_cmd(process = [], verbose=False) :
         return error.output
     return
 
-# def get_jobs(user,verbose=False) :
-    # """ Return output of alien_top as a single string"""
-    # return exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
-
 def get_job_list(user,verbose=False) :
     """ Returns list of job dicts from Grid query for a single user """
     job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
@@ -64,7 +60,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik') :
+def get_status(user='vpacik',debug=True) :
     """
     Fetching jobs from Grid servers, sorting them according to their status
     and prints brief overview
@@ -72,8 +68,9 @@ def get_status(user='vpacik') :
     jobs = get_job_list(str(user))
 
     master = []
-    master_split = []
     master_done = []
+    master_split = []
+    master_error = []
     master_rest = []
 
     subjobs = []
@@ -85,6 +82,7 @@ def get_status(user='vpacik') :
     subjobs_saving = []
     subjobs_errors = []
     subjobs_expired = []
+    subjobs_zombie = []
     subjobs_rest = []
 
     print '######################################'
@@ -97,6 +95,7 @@ def get_status(user='vpacik') :
 
             if job['status'] == 'DONE' : master_done.append(job)
             elif job['status'] == 'SPLIT' : master_split.append(job)
+            elif job['status'].startswith('ERROR') : master_error.append(job)
             else : master_rest.append(job)
 
         elif job['server'].startswith("aliendb") :
@@ -111,6 +110,7 @@ def get_status(user='vpacik') :
             elif job['status'] == 'SAVING' : subjobs_saving.append(job)
             elif job['status'].startswith('ERROR') : subjobs_errors.append(job)
             elif job['status'] == 'EXPIRED' : subjobs_expired.append(job)
+            elif job['status'] == 'ZOMBIE' : subjobs_zombie.append(job)
             else : subjobs_rest.append(job)
 
         else :
@@ -119,8 +119,9 @@ def get_status(user='vpacik') :
 
 
     num_masjob_all = len(master)
-    num_masjob_split = len(master_split)
     num_masjob_done = len(master_done)
+    num_masjob_split = len(master_split)
+    num_masjob_error = len(master_error)
     num_masjob_rest = len(master_rest)
 
     num_subjob_all = len(subjobs)
@@ -132,6 +133,7 @@ def get_status(user='vpacik') :
     num_subjob_save = len(subjobs_saving)
     num_subjob_error = len(subjobs_errors)
     num_subjob_expire = len(subjobs_expired)
+    num_subjob_zombie = len(subjobs_zombie)
     num_subjob_rest = len(subjobs_rest)
 
     def printStatusLine(label, num, num_all) :
@@ -143,6 +145,7 @@ def get_status(user='vpacik') :
     print '======= Masterjobs (%d) ==============' % (num_masjob_all)
     printStatusLine("Done", num_masjob_done, num_masjob_all)
     printStatusLine("Split", num_masjob_split, num_masjob_all)
+    printStatusLine("Error", num_masjob_error, num_masjob_all)
     printStatusLine("Rest", num_masjob_rest, num_masjob_all)
     print '======= Subjobs (%d) ==============' % (num_subjob_all)
     printStatusLine("Done", num_subjob_done, num_subjob_all)
@@ -153,19 +156,20 @@ def get_status(user='vpacik') :
     printStatusLine("Saving", num_subjob_save, num_subjob_all)
     printStatusLine("Error", num_subjob_error, num_subjob_all)
     printStatusLine("Expired", num_subjob_expire, num_subjob_all)
+    printStatusLine("Zombie", num_subjob_zombie, num_subjob_all)
     printStatusLine("Rest", num_subjob_rest, num_subjob_all)
     print '######################################'
 
-    if master_rest :
-        print '========= Remaining (not-sorted) MASTER jobs ==========='
-        for job in master_rest :
-            print job
+    if debug :
+        if master_rest :
+            print '========= Remaining (not-sorted) MASTER jobs ==========='
+            for job in master_rest :
+                print job
 
-    if subjobs_rest :
-        print '========= Remaining (not-sorted) SUBjobs ==========='
-        for job in subjobs_rest :
-            print job
-
+        if subjobs_rest :
+            print '========= Remaining (not-sorted) SUBjobs ==========='
+            for job in subjobs_rest :
+                print job
     return
 
 def kill_job_id(id, verbose=False) :
