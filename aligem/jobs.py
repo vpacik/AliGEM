@@ -30,7 +30,7 @@ def exec_alien_cmd(process = [], verbose=False) :
         return error.output
     return
 
-def get_job_list(user,verbose=False) :
+def get_jobs(user,verbose=False) :
     """ Returns list of job dicts from Grid query for a single user """
     job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
 
@@ -65,7 +65,12 @@ def get_status(user='vpacik',debug=True) :
     Fetching jobs from Grid servers, sorting them according to their status
     and prints brief overview
     """
-    jobs = get_job_list(str(user))
+
+    if user is None :
+        print 'User not specified. This might take long time. Aborted!'
+        return
+
+    jobs = get_jobs(str(user))
 
     master = []
     master_done = []
@@ -214,32 +219,6 @@ def filter_jobs(list_jobs, status=None, server=None, user='vpacik') :
 
     return filtered_jobs
 # ==============================================================================
-
-# use_user = 'vpacik'
-#
-# const_masterjob = "pcapiserv"
-# const_subjob = "aliendb"
-
-
-# get_status(use_user)
-
-#
-#
-# jobs = get_job_list(get_jobs(str(use_user)))
-#
-# print len(jobs)
-#
-# filtered = filter_jobs(jobs,status='DONE')
-# print len(filtered)
-#
-# filtered = filter_jobs(jobs,status='DONE',server=const_masterjob)
-# print len(filtered)
-#
-# for job in filtered :
-#     print job
-#
-
-# get_status(use_user)
 
 # parser = argparse.ArgumentParser(prog='jobs',description="AliGEM module for handling ALICE Grid jobs")
 # args = parser.parse_args()
