@@ -48,7 +48,13 @@ def get_jobs(user,verbose=False) :
 def process_single_job(job='') :
     """ Returns a dict with a data from single job"""
     job = job.split("\t")
-    single_job = { 'id':job[0], 'status':job[1], 'user':job[2], 'script':job[3], 'server':job[4] }
+
+    if job[4].startswith("pcapiserv") :
+        job_type = 'master'
+    else :
+        job_type = 'subjob'
+
+    single_job = { 'id':job[0], 'group':job_type, 'status':job[1], 'user':job[2], 'script':job[3], 'server':job[4] }
     return single_job
 
 def validate_single_job(job,debug=False) :
@@ -56,17 +62,25 @@ def validate_single_job(job,debug=False) :
     isOK = True
     if not job['id'].isdigit() :
         isOK = False
-        if debug : print("job id not validated")
+        if debug : print "job id '%s' not validated" % str(job['id'])
+
+    if ( (job['group'] == 'master') and (not job['server'].startswith('pcapiserv')) ) :
+        isOK = False
+        if debug : print "job group '%s' not validated" % job['group']
+
+    if (job['group'] == 'subjob') and (not job['server'].startswith('aliendb')) :
+        isOK = False
+        if debug : print "job group '%s' not validated" % job['group']
+
     if debug and (isOK == False) : print(job)
     return isOK
 
 def get_status(user='vpacik',debug=True) :
     """
-    Fetching jobs from Grid servers, sorting them according to their status
-    and prints brief overview
+    Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
 
-    if user is None :
+    if user == None :
         print 'User not specified. This might take long time. Aborted!'
         return
 
@@ -94,21 +108,21 @@ def get_status(user='vpacik',debug=True) :
     print '  Jobs status for user "%s"' % user
     for job in jobs:
 
-        if job['server'].startswith("pcapiserv") :
+        if job['group'] == 'master' :
             # masterjob
             master.append(job)
 
-            if job['status'] == 'DONE' : master_done.append(job)
+            if job['status'].startswith('DONE') : master_done.append(job)
             elif job['status'] == 'SPLIT' : master_split.append(job)
             elif job['status'].startswith('ERROR') : master_error.append(job)
             else : master_rest.append(job)
 
-        elif job['server'].startswith("aliendb") :
+        elif job['group'] == 'subjob' :
             # subjobs
             subjobs.append(job)
 
             if job['status'] == 'RUNNING' : subjobs_running.append(job)
-            elif job['status'] == 'DONE' : subjobs_done.append(job)
+            elif job['status'].startswith('DONE') : subjobs_done.append(job)
             elif job['status'] == 'WAITING' : subjobs_waiting.append(job)
             elif job['status'] == 'ASSIGNED' : subjobs_assigned.append(job)
             elif job['status'] == 'STARTED' : subjobs_started.append(job)
@@ -119,7 +133,7 @@ def get_status(user='vpacik',debug=True) :
             else : subjobs_rest.append(job)
 
         else :
-            print('Unknown job server value: '+str(job['server']))
+            print('Unknown job group : '+str(job['group']))
 
 
 
@@ -152,7 +166,7 @@ def get_status(user='vpacik',debug=True) :
     printStatusLine("Split", num_masjob_split, num_masjob_all)
     printStatusLine("Error", num_masjob_error, num_masjob_all)
     printStatusLine("Rest", num_masjob_rest, num_masjob_all)
-    print '======= Subjobs (%d) ==============' % (num_subjob_all)
+    print '======= Subjobs (%d) ===============' % (num_subjob_all)
     printStatusLine("Done", num_subjob_done, num_subjob_all)
     printStatusLine("Running", num_subjob_run, num_subjob_all)
     printStatusLine("Waiting", num_subjob_wait, num_subjob_all)
@@ -178,12 +192,11 @@ def get_status(user='vpacik',debug=True) :
     return
 
 def kill_job_id(id, verbose=False) :
+    """ Kill a single job based on input id """
     print exec_alien_cmd(['alien_kill',str(id)],verbose=verbose)
 
 def kill_jobs(jobid_list) :
-    """
-    Kill ALL jobs based on provided list with (filtered) job IDs.
-    """
+    """ Kill ALL jobs based on provided list with (filtered) job IDs. """
     if not jobid_list :
         print 'List of job IDs is empty. Nothing to kill'
         return
@@ -194,7 +207,7 @@ def kill_jobs(jobid_list) :
     return
 
 
-def filter_jobs(list_jobs, status=None, server=None, user='vpacik') :
+def filter_jobs(list_jobs, group=None, status=None, server=None, user='vpacik') :
     """ Returns a list with jobs passing filtering criteria """
 
     if not list_jobs : # check if list is empty
@@ -203,19 +216,17 @@ def filter_jobs(list_jobs, status=None, server=None, user='vpacik') :
 
     filtered_jobs = list_jobs
 
-    # TODO check if is not emplty is valid for variables
+    if user != None :
+        filtered_jobs = [ job for job in filtered_jobs if job['user'] == user ]
 
-    if user is not None :
-        filtered_jobs = [ job for job in filtered_jobs if job['user'] == str(user) ]
+    if group == ('master' or 'subjob'):
+        filtered_jobs = [ job for job in filtered_jobs if job['group'] == group ]
 
-    if server is not None :
-        filtered_jobs = [ job for job in filtered_jobs if job['server'].startswith(str(server)) ]
+    if server != None :
+        filtered_jobs = [ job for job in filtered_jobs if job['server'].startswith(server) ]
 
-    if status is not None :
-        if status is 'ERROR' :
-            filtered_jobs = [ job for job in filtered_jobs if job['status'].startswith('ERROR') ]
-        else :
-            filtered_jobs = [ job for job in filtered_jobs if job['status'] == str(status) ]
+    if status != None :
+        filtered_jobs = [ job for job in filtered_jobs if job['status'].startswith(status) ]
 
     return filtered_jobs
 # ==============================================================================
