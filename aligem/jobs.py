@@ -191,19 +191,21 @@ def get_status(user='vpacik',debug=True) :
                 print job
     return
 
-def kill_job_id(id, verbose=False) :
+def kill_job_id(job_id, verbose=False) :
     """ Kill a single job based on input id """
-    print exec_alien_cmd(['alien_kill',str(id)],verbose=verbose)
+    print exec_alien_cmd(['alien_kill',str(job_id)],verbose=verbose)
 
-def kill_jobs(jobid_list) :
-    """ Kill ALL jobs based on provided list with (filtered) job IDs. """
-    if not jobid_list :
-        print 'List of job IDs is empty. Nothing to kill'
+def kill_jobs(jobs_list,verbose=False) :
+    """ Kill ALL jobs based on provided list with (filtered) jobs. """
+    if not jobs_list :
+        print 'List of jobs is empty. Nothing to kill'
         return
 
-    for id in jobid_list :
-        print 'Job ID to kill %d (would be kill, running in debug mode)' % (id)
-        # kill_job_id(id,verbose=verbose)
+    for job in jobs_list :
+        job_id = job['id']
+        print 'Job ID to kill %s (would be killed, running in debug mode)' % (job_id)
+        print job
+        # kill_job_id(job_id,verbose=verbose)
     return
 
 
@@ -237,7 +239,7 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
 # print args
 
 # parsing command-line arguments
-# parser = argparse.ArgumentParser(prog='jobs',description="AliGEM module for handling ALICE Grid jobs")
+# parser = argparse.ArgumentParser(prog='jobs',description="AliGEM tool for handling ALICE Grid jobs")
 # parser.add_argument("-u", "--user", type=str, default='vpacik', help="Specify a user for the action")
 
 # subparsers = parser.add_subparsers(help='')
