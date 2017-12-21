@@ -30,7 +30,7 @@ def exec_alien_cmd(process = [], verbose=False) :
         return error.output
     return
 
-def get_jobs(user,verbose=False) :
+def fetch_jobs(user,verbose=False) :
     """ Returns list of job dicts from Grid query for a single user """
     job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
 
@@ -84,7 +84,7 @@ def get_status(user='vpacik',debug=True) :
         print 'User not specified. This might take long time. Aborted!'
         return
 
-    jobs = get_jobs(str(user))
+    jobs = fetch_jobs(str(user))
 
     master = []
     master_done = []
@@ -207,7 +207,7 @@ def kill_jobs(jobid_list) :
     return
 
 
-def filter_jobs(list_jobs, group=None, status=None, server=None, user='vpacik') :
+def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
     """ Returns a list with jobs passing filtering criteria """
 
     if not list_jobs : # check if list is empty
@@ -217,16 +217,16 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user='vpacik') 
     filtered_jobs = list_jobs
 
     if user != None :
-        filtered_jobs = [ job for job in filtered_jobs if job['user'] == user ]
+        filtered_jobs = [ job for job in filtered_jobs if job['user'] == str(user) ]
 
-    if group == ('master' or 'subjob'):
-        filtered_jobs = [ job for job in filtered_jobs if job['group'] == group ]
+    if group != None :
+        filtered_jobs = [ job for job in filtered_jobs if job['group'] == str(group) ]
 
     if server != None :
-        filtered_jobs = [ job for job in filtered_jobs if job['server'].startswith(server) ]
+        filtered_jobs = [ job for job in filtered_jobs if job['server'].startswith(str(server)) ]
 
     if status != None :
-        filtered_jobs = [ job for job in filtered_jobs if job['status'].startswith(status) ]
+        filtered_jobs = [ job for job in filtered_jobs if job['status'].startswith(str(status)) ]
 
     return filtered_jobs
 # ==============================================================================
