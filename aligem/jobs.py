@@ -90,6 +90,7 @@ def get_status(user='vpacik',debug=True) :
     master_done = []
     master_split = []
     master_error = []
+    master_inserting = []
     master_rest = []
 
     subjobs = []
@@ -99,6 +100,7 @@ def get_status(user='vpacik',debug=True) :
     subjobs_assigned = []
     subjobs_started = []
     subjobs_saving = []
+    subjobs_saved = []
     subjobs_errors = []
     subjobs_expired = []
     subjobs_zombie = []
@@ -114,6 +116,7 @@ def get_status(user='vpacik',debug=True) :
 
             if job['status'].startswith('DONE') : master_done.append(job)
             elif job['status'] == 'SPLIT' : master_split.append(job)
+            elif job['status'] == 'INSERTING' : master_inserting.append(job)
             elif job['status'].startswith('ERROR') : master_error.append(job)
             else : master_rest.append(job)
 
@@ -127,6 +130,7 @@ def get_status(user='vpacik',debug=True) :
             elif job['status'] == 'ASSIGNED' : subjobs_assigned.append(job)
             elif job['status'] == 'STARTED' : subjobs_started.append(job)
             elif job['status'] == 'SAVING' : subjobs_saving.append(job)
+            elif job['status'] == 'SAVED' : subjobs_saved.append(job)
             elif job['status'].startswith('ERROR') : subjobs_errors.append(job)
             elif job['status'] == 'EXPIRED' : subjobs_expired.append(job)
             elif job['status'] == 'ZOMBIE' : subjobs_zombie.append(job)
@@ -140,6 +144,7 @@ def get_status(user='vpacik',debug=True) :
     num_masjob_all = len(master)
     num_masjob_done = len(master_done)
     num_masjob_split = len(master_split)
+    num_masjob_inserting = len(master_inserting)
     num_masjob_error = len(master_error)
     num_masjob_rest = len(master_rest)
 
@@ -149,7 +154,8 @@ def get_status(user='vpacik',debug=True) :
     num_subjob_wait = len(subjobs_waiting)
     num_subjob_assign = len(subjobs_assigned)
     num_subjob_start = len(subjobs_started)
-    num_subjob_save = len(subjobs_saving)
+    num_subjob_saving = len(subjobs_saving)
+    num_subjob_saved = len(subjobs_saved)
     num_subjob_error = len(subjobs_errors)
     num_subjob_expire = len(subjobs_expired)
     num_subjob_zombie = len(subjobs_zombie)
@@ -164,6 +170,7 @@ def get_status(user='vpacik',debug=True) :
     print '======= Masterjobs (%d) ==============' % (num_masjob_all)
     printStatusLine("Done", num_masjob_done, num_masjob_all)
     printStatusLine("Split", num_masjob_split, num_masjob_all)
+    printStatusLine("Inserting", num_masjob_inserting, num_masjob_all)
     printStatusLine("Error", num_masjob_error, num_masjob_all)
     printStatusLine("Rest", num_masjob_rest, num_masjob_all)
     print '======= Subjobs (%d) ===============' % (num_subjob_all)
@@ -172,7 +179,8 @@ def get_status(user='vpacik',debug=True) :
     printStatusLine("Waiting", num_subjob_wait, num_subjob_all)
     printStatusLine("Assigned", num_subjob_assign, num_subjob_all)
     printStatusLine("Starting", num_subjob_start, num_subjob_all)
-    printStatusLine("Saving", num_subjob_save, num_subjob_all)
+    printStatusLine("Saving", num_subjob_saving, num_subjob_all)
+    printStatusLine("Saved", num_subjob_saved, num_subjob_all)
     printStatusLine("Error", num_subjob_error, num_subjob_all)
     printStatusLine("Expired", num_subjob_expire, num_subjob_all)
     printStatusLine("Zombie", num_subjob_zombie, num_subjob_all)
@@ -195,7 +203,7 @@ def kill_job_id(job_id, verbose=False) :
     """ Kill a single job based on input id """
     print exec_alien_cmd(['alien_kill',str(job_id)],verbose=verbose)
 
-def kill_jobs(jobs_list,verbose=False) :
+def kill_jobs(jobs_list,verbose=False,debug=True) :
     """ Kill ALL jobs based on provided list with (filtered) jobs. """
     if not jobs_list :
         print 'List of jobs is empty. Nothing to kill'
@@ -203,9 +211,12 @@ def kill_jobs(jobs_list,verbose=False) :
 
     for job in jobs_list :
         job_id = job['id']
-        print 'Job ID to kill %s (would be killed, running in debug mode)' % (job_id)
-        print job
-        # kill_job_id(job_id,verbose=verbose)
+
+        if debug :
+            print 'Job ID to kill %s (would be killed, running in debug mode)' % (job_id)
+            print job
+        else :
+            kill_job_id(job_id,verbose=verbose)
     return
 
 
