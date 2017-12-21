@@ -16,8 +16,8 @@ setup(name='aligem',
       packages=['aligem'],
       test_suite='nose.collector',
       tests_require=['nose', 'nose-cover3'],
-     entry_points={
-          'console_scripts': ['funniest-joke=funniest.command_line:main'],
+      entry_points = {
+          'console_scripts': ['aligem=aligem.command_line:main'],
       },
       include_package_data=True,
       zip_safe=False)
