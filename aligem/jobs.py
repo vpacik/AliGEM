@@ -3,8 +3,9 @@
 import subprocess
 import argparse
 
+
 def main() :
-    pass
+    print "Welcome to AliGEM | Jobs"
 
 def exec_alien_cmd(process = [], verbose=False) :
     """
@@ -48,6 +49,9 @@ def fetch_jobs(user,verbose=False) :
 def process_single_job(job='') :
     """ Returns a dict with a data from single job"""
     job = job.split("\t")
+
+    if len(job) < 4 :
+        return {}
 
     if job[4].startswith("pcapiserv") :
         job_type = 'master'
@@ -219,7 +223,6 @@ def kill_jobs(jobs_list,verbose=False,debug=True) :
             kill_job_id(job_id,verbose=verbose)
     return
 
-
 def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
     """ Returns a list with jobs passing filtering criteria """
 
@@ -242,36 +245,11 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
         filtered_jobs = [ job for job in filtered_jobs if job['status'].startswith(str(status)) ]
 
     return filtered_jobs
+
+def kill_done(user="vpacik", verbose=False, debug=False) :
+    filtered = filter_jobs(fetch_jobs(user), status="DONE")
+    if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
+    kill_jobs(filtered, debug=debug)
+    return
+
 # ==============================================================================
-
-# parser = argparse.ArgumentParser(prog='jobs',description="AliGEM module for handling ALICE Grid jobs")
-# args = parser.parse_args()
-# args.func(args)
-# print args
-
-# parsing command-line arguments
-# parser = argparse.ArgumentParser(prog='jobs',description="AliGEM tool for handling ALICE Grid jobs")
-# parser.add_argument("-u", "--user", type=str, default='vpacik', help="Specify a user for the action")
-
-# subparsers = parser.add_subparsers(help='')
-#
-# sub_status = subparsers.add_parser("status", help='Overview of currently registered jobs')
-#
-# sub_list = subparsers.add_parser("list", help="List of jobs with status")
-#
-#
-#
-# sub_kill = subparsers.add_parser("kill", description='Kill a grid job(s)', help='Kill job')
-#
-#
-# args = parser.parse_args()
-# args.func(args)
-#
-# print args
-#
-# if args.user :
-#     use_user = args.user
-
-# if args.status :
-        # print get_status(user_conf)
-#
