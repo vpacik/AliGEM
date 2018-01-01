@@ -14,9 +14,10 @@ def main() :
     parser_jobs = subparsers.add_parser("jobs", help="grid jobs operations")
     jobs_subparsers = parser_jobs.add_subparsers(dest="job_command")
 
-    # jobs sub-parser (L2)
+    # jobs sub-parsers (L2)
     jobs_subparser_status = jobs_subparsers.add_parser("status", help = "print overview of current grid jobs")
     jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
+    jobs_subparser_status.add_argument("-o","--offline", help="running in OFFLINE mode for testing purposes", action="store_true")
 
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s)")
     jobs_subparser_kill.add_argument("-u","--user", help="specify USER as CERN username")
@@ -31,6 +32,7 @@ def main() :
     args = parser.parse_args()
 
     debug = args.debug
+    verbose = args.verbose
 
 
     # if debug :
@@ -45,11 +47,12 @@ def main() :
         if args.job_command == 'status' :
             if debug : print "inside status"
             user = args.user
+            offline = args.offline
 
             if user == None :
-                jobs.get_status()
+                jobs.get_status(local=offline)
             else :
-                jobs.get_status(user)
+                jobs.get_status(user,local=offline)
 
         if args.job_command == 'kill' :
             if debug : print "inside kill"
