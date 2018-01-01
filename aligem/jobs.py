@@ -31,9 +31,18 @@ def exec_alien_cmd(process = [], verbose=False) :
         return error.output
     return
 
-def fetch_jobs(user,verbose=False) :
-    """ Returns list of job dicts from Grid query for a single user """
-    job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
+def fetch_jobs(user,verbose=False,local=False) :
+    """
+    Returns list of job dicts from Grid query for a single user
+    If local=True then '../jobs_string.txt' file is used instead of online data
+    """
+
+    if local :
+        with open('../jobs_string.txt','r') as local_str :
+            job_string = local_str.read()
+
+    else :
+        job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
 
     # stripping useless characters within jobs output
     job_string = job_string.replace(" ","") # removing whitespaces
@@ -79,7 +88,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik',debug=True) :
+def get_status(user='vpacik',debug=True,local=False) :
     """
     Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
@@ -88,7 +97,7 @@ def get_status(user='vpacik',debug=True) :
         print 'User not specified. This might take long time. Aborted!'
         return
 
-    jobs = fetch_jobs(str(user))
+    jobs = fetch_jobs(str(user),local=local)
 
     master = []
     master_done = []
@@ -111,7 +120,11 @@ def get_status(user='vpacik',debug=True) :
     subjobs_rest = []
 
     print '######################################'
-    print '  Jobs status for user "%s"' % user
+    if local :
+        print '  Jobs status from offline file'
+    else :
+        print '  Jobs status for user "%s"' % user
+
     for job in jobs:
 
         if job['group'] == 'master' :
