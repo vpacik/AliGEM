@@ -119,12 +119,6 @@ def get_status(user='vpacik',debug=True,local=False) :
     subjobs_zombie = []
     subjobs_rest = []
 
-    print '######################################'
-    if local :
-        print '  Jobs status from offline file'
-    else :
-        print '  Jobs status for user "%s"' % user
-
     for job in jobs:
 
         if job['group'] == 'master' :
@@ -183,6 +177,11 @@ def get_status(user='vpacik',debug=True,local=False) :
         if num_all > 0.0 : perc = 100*float(num)/num_all
         print '%10s:  %4d/%d  %5.1f%%' % (label, num, num_all, perc)
         return
+    print '######################################'
+    if local :
+        print '  Jobs status from offline file'
+    else :
+        print '  Jobs status for user "%s"' % user
 
     print '======= Masterjobs (%d) ==============' % (num_masjob_all)
     printStatusLine("Done", num_masjob_done, num_masjob_all)

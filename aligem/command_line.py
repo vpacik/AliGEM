@@ -4,6 +4,7 @@ import argparse
 def main() :
     ### top-level group (L0)
     parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations")
+    parser.add_argument("-u","--user", help="specify USER as CERN username")
     parser.add_argument("-v","--verbose", help="produce verbose output", action="store_true")
     parser.add_argument("-d","--debug", help="debugging mode (additional printout)", action="store_true")
     parser.add_argument("--version", action="version", version='0.1', help="print current version")
@@ -16,11 +17,11 @@ def main() :
 
     # jobs sub-parsers (L2)
     jobs_subparser_status = jobs_subparsers.add_parser("status", help = "print overview of current grid jobs")
-    jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
+    # jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
     jobs_subparser_status.add_argument("-o","--offline", help="running in OFFLINE mode for testing purposes", action="store_true")
 
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s)")
-    jobs_subparser_kill.add_argument("-u","--user", help="specify USER as CERN username")
+    # jobs_subparser_kill.add_argument("-u","--user", help="specify USER as CERN username")
 
 
     # token parser (L1)
