@@ -89,7 +89,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik',debug=True,local=False) :
+def get_status(user='vpacik',debug=False,local=False) :
     """
     Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
