@@ -2,6 +2,7 @@
 
 import subprocess
 import argparse
+from collections import Counter
 
 
 def main() :
@@ -97,122 +98,64 @@ def get_status(user='vpacik',debug=True,local=False) :
         print 'User not specified. This might take long time. Aborted!'
         return
 
+    # Works well except for states with starts with something; ie. ERROR_*, DONE_*
+
     jobs = fetch_jobs(str(user),local=local)
 
-    master = []
-    master_done = []
-    master_split = []
-    master_error = []
-    master_inserting = []
-    master_rest = []
+    master = [ job['status'] for job in jobs if job['group'] == 'master' ]
+    num_master = len(master)
+    counts_master = Counter(master)
 
-    subjobs = []
-    subjobs_done = []
-    subjobs_running = []
-    subjobs_waiting = []
-    subjobs_assigned = []
-    subjobs_started = []
-    subjobs_saving = []
-    subjobs_saved = []
-    subjobs_errors = []
-    subjobs_expired = []
-    subjobs_zombie = []
-    subjobs_rest = []
+    sub_jobs = [ job['status'] for job in jobs if job['group'] == 'subjob' ]
+    num_subjob = len(sub_jobs)
+    counts_subjob = Counter(sub_jobs)
 
-    for job in jobs:
+    # getting general counts of finer split elements (such as ERROR_* and DONE_*)
+    for key,value in counts_master.iteritems() :
+        if key.startswith("ERROR") : counts_master = counts_master + Counter({'ERROR_ALL' : value})
+        if key.startswith("DONE") : counts_master = counts_master + Counter({'DONE_ALL' : value})
 
-        if job['group'] == 'master' :
-            # masterjob
-            master.append(job)
+    for key,value in counts_subjob.iteritems() :
+        if key.startswith("ERROR") : counts_subjob += Counter({'ERROR_ALL' : value})
+        if key.startswith("DONE") : counts_subjob += Counter({'DONE_ALL' : value})
 
-            if job['status'].startswith('DONE') : master_done.append(job)
-            elif job['status'] == 'SPLIT' : master_split.append(job)
-            elif job['status'] == 'INSERTING' : master_inserting.append(job)
-            elif job['status'].startswith('ERROR') : master_error.append(job)
-            else : master_rest.append(job)
-
-        elif job['group'] == 'subjob' :
-            # subjobs
-            subjobs.append(job)
-
-            if job['status'] == 'RUNNING' : subjobs_running.append(job)
-            elif job['status'].startswith('DONE') : subjobs_done.append(job)
-            elif job['status'] == 'WAITING' : subjobs_waiting.append(job)
-            elif job['status'] == 'ASSIGNED' : subjobs_assigned.append(job)
-            elif job['status'] == 'STARTED' : subjobs_started.append(job)
-            elif job['status'] == 'SAVING' : subjobs_saving.append(job)
-            elif job['status'] == 'SAVED' : subjobs_saved.append(job)
-            elif job['status'].startswith('ERROR') : subjobs_errors.append(job)
-            elif job['status'] == 'EXPIRED' : subjobs_expired.append(job)
-            elif job['status'] == 'ZOMBIE' : subjobs_zombie.append(job)
-            else : subjobs_rest.append(job)
-
-        else :
-            print('Unknown job group : '+str(job['group']))
-
-
-
-    num_masjob_all = len(master)
-    num_masjob_done = len(master_done)
-    num_masjob_split = len(master_split)
-    num_masjob_inserting = len(master_inserting)
-    num_masjob_error = len(master_error)
-    num_masjob_rest = len(master_rest)
-
-    num_subjob_all = len(subjobs)
-    num_subjob_done = len(subjobs_done)
-    num_subjob_run = len(subjobs_running)
-    num_subjob_wait = len(subjobs_waiting)
-    num_subjob_assign = len(subjobs_assigned)
-    num_subjob_start = len(subjobs_started)
-    num_subjob_saving = len(subjobs_saving)
-    num_subjob_saved = len(subjobs_saved)
-    num_subjob_error = len(subjobs_errors)
-    num_subjob_expire = len(subjobs_expired)
-    num_subjob_zombie = len(subjobs_zombie)
-    num_subjob_rest = len(subjobs_rest)
 
     def printStatusLine(label, num, num_all) :
         perc = -1.0
         if num_all > 0.0 : perc = 100*float(num)/num_all
         print '%10s:  %4d/%d  %5.1f%%' % (label, num, num_all, perc)
         return
+
     print '######################################'
     if local :
         print '  Jobs status from offline file'
     else :
         print '  Jobs status for user "%s"' % user
 
-    print '======= Masterjobs (%d) ==============' % (num_masjob_all)
-    printStatusLine("Done", num_masjob_done, num_masjob_all)
-    printStatusLine("Split", num_masjob_split, num_masjob_all)
-    printStatusLine("Inserting", num_masjob_inserting, num_masjob_all)
-    printStatusLine("Error", num_masjob_error, num_masjob_all)
-    printStatusLine("Rest", num_masjob_rest, num_masjob_all)
-    print '======= Subjobs (%d) ===============' % (num_subjob_all)
-    printStatusLine("Done", num_subjob_done, num_subjob_all)
-    printStatusLine("Running", num_subjob_run, num_subjob_all)
-    printStatusLine("Waiting", num_subjob_wait, num_subjob_all)
-    printStatusLine("Assigned", num_subjob_assign, num_subjob_all)
-    printStatusLine("Starting", num_subjob_start, num_subjob_all)
-    printStatusLine("Saving", num_subjob_saving, num_subjob_all)
-    printStatusLine("Saved", num_subjob_saved, num_subjob_all)
-    printStatusLine("Error", num_subjob_error, num_subjob_all)
-    printStatusLine("Expired", num_subjob_expire, num_subjob_all)
-    printStatusLine("Zombie", num_subjob_zombie, num_subjob_all)
-    printStatusLine("Rest", num_subjob_rest, num_subjob_all)
+    print '======= Masterjobs =============='
+    printStatusLine("Done", counts_master['DONE_ALL'], num_master)
+    printStatusLine("Split", counts_master['SPLIT'], num_master)
+    printStatusLine("Inserting", counts_master['INSERTING'], num_master)
+    printStatusLine("Error", counts_master['ERROR_ALL'], num_master)
+    # printStatusLine("Rest", counts_master['DONE'], num_master)
+    print '======= Subjobs ================='
+    printStatusLine("Done", counts_subjob['DONE_ALL'], num_subjob)
+    printStatusLine("Running", counts_subjob['RUNNING'], num_subjob)
+    printStatusLine("Waiting", counts_subjob['WAITING'], num_subjob)
+    printStatusLine("Assigned", counts_subjob['ASSIGNED'], num_subjob)
+    printStatusLine("Starting", counts_subjob['STARTED'], num_subjob)
+    printStatusLine("Saving", counts_subjob['SAVING'], num_subjob)
+    printStatusLine("Saved", counts_subjob['SAVED'], num_subjob)
+    printStatusLine("Error", counts_subjob['ERROR_ALL'], num_subjob)
+    printStatusLine("Expired", counts_subjob['EXPIRED'], num_subjob)
+    printStatusLine("Zombie", counts_subjob['ZOMBIE'], num_subjob)
+    # printStatusLine("Rest", counts_subjob['DONE'], num_subjob)
     print '######################################'
 
     if debug :
-        if master_rest :
-            print '========= Remaining (not-sorted) MASTER jobs ==========='
-            for job in master_rest :
-                print job
+        print counts_master
+        print counts_subjob
 
-        if subjobs_rest :
-            print '========= Remaining (not-sorted) SUBjobs ==========='
-            for job in subjobs_rest :
-                print job
     return
 
 def kill_job_id(job_id, verbose=False) :
