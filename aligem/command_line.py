@@ -51,9 +51,9 @@ def main() :
             offline = args.offline
 
             if user == None :
-                jobs.get_status(local=offline)
+                jobs.get_status(offline=offline)
             else :
-                jobs.get_status(user,local=offline)
+                jobs.get_status(user,offline=offline)
 
         if args.job_command == 'kill' :
             if debug : print "inside kill"

@@ -32,13 +32,13 @@ def exec_alien_cmd(process = [], verbose=False) :
         return error.output
     return
 
-def fetch_jobs(user,verbose=False,local=False) :
+def fetch_jobs(user,verbose=False,offline=False) :
     """
     Returns list of job dicts from Grid query for a single user
-    If local=True then '../jobs_string.txt' file is used instead of online data
+    If offline=True then '../jobs_string.txt' file is used instead of online data
     """
 
-    if local :
+    if offline :
         with open('../jobs_string.txt','r') as local_str :
             job_string = local_str.read()
 
@@ -89,7 +89,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik',debug=False,local=False) :
+def get_status(user='vpacik',debug=False,offline=False) :
     """
     Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
@@ -100,7 +100,7 @@ def get_status(user='vpacik',debug=False,local=False) :
 
     # Works well except for states with starts with something; ie. ERROR_*, DONE_*
 
-    jobs = fetch_jobs(str(user),local=local)
+    jobs = fetch_jobs(str(user),offline=offline)
 
     master = [ job['status'] for job in jobs if job['group'] == 'master' ]
     num_master = len(master)
@@ -127,7 +127,7 @@ def get_status(user='vpacik',debug=False,local=False) :
         return
 
     print '######################################'
-    if local :
+    if offline :
         print '  Jobs status from offline file'
     else :
         print '  Jobs status for user "%s"' % user
