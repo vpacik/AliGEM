@@ -112,14 +112,30 @@ def get_status(user='vpacik',debug=False,offline=False) :
 
     # getting general counts of finer split elements (such as ERROR_* and DONE_*)
     for key,value in counts_master.iteritems() :
-        if key.startswith("ERROR") : counts_master = counts_master + Counter({'ERROR_ALL' : value})
-        if key.startswith("DONE") : counts_master = counts_master + Counter({'DONE_ALL' : value})
+        if key.startswith("ERROR") : counts_master += Counter({'ERROR_ALL' : value})
+        if key.startswith("DONE") : counts_master += Counter({'DONE_ALL' : value})
 
     for key,value in counts_subjob.iteritems() :
         if key.startswith("ERROR") : counts_subjob += Counter({'ERROR_ALL' : value})
         if key.startswith("DONE") : counts_subjob += Counter({'DONE_ALL' : value})
 
+    # lists of job states used for ordered printing (NB: counts.keys() could be used instead, however it will be "randomly" ordered)
+    states_master = [ "DONE_ALL", "SPLIT", "INSERTING", "RUNNING", "SAVING", "SAVED", "ERROR_ALL", "ZOMBIE", "REST"]
+    states_subjob = [ "DONE_ALL", "WAITING", "ASSIGNED", "STARTED", "RUNNING", "SAVING", "SAVED", "ERROR_ALL", "EXPIRED", "ZOMBIE", "REST"]
 
+    # estimating REST state (one not listed (and thus printed) in above lists)
+    num_rest = num_master
+    for key, value in counts_master.iteritems() :
+        if key in states_master : num_rest -= value
+    counts_master.update({'REST' : num_rest})
+
+    num_rest = num_subjob
+    for key, value in counts_subjob.iteritems() :
+        if key in states_subjob : num_rest -= value
+    counts_subjob.update({'REST' : num_rest})
+
+
+    # Printing status output to the user
     def printStatusLine(label, num, num_all) :
         perc = -1.0
         if num_all > 0.0 : perc = 100*float(num)/num_all
@@ -133,29 +149,17 @@ def get_status(user='vpacik',debug=False,offline=False) :
         print '  Jobs status for user "%s"' % user
 
     print '======= Masterjobs =============='
-    printStatusLine("Done", counts_master['DONE_ALL'], num_master)
-    printStatusLine("Split", counts_master['SPLIT'], num_master)
-    printStatusLine("Inserting", counts_master['INSERTING'], num_master)
-    printStatusLine("Error", counts_master['ERROR_ALL'], num_master)
-    # printStatusLine("Rest", counts_master['DONE'], num_master)
+    for key in states_master :
+        printStatusLine(key, counts_master[key], num_master)
     print '======= Subjobs ================='
-    printStatusLine("Done", counts_subjob['DONE_ALL'], num_subjob)
-    printStatusLine("Running", counts_subjob['RUNNING'], num_subjob)
-    printStatusLine("Waiting", counts_subjob['WAITING'], num_subjob)
-    printStatusLine("Assigned", counts_subjob['ASSIGNED'], num_subjob)
-    printStatusLine("Starting", counts_subjob['STARTED'], num_subjob)
-    printStatusLine("Saving", counts_subjob['SAVING'], num_subjob)
-    printStatusLine("Saved", counts_subjob['SAVED'], num_subjob)
-    printStatusLine("Error", counts_subjob['ERROR_ALL'], num_subjob)
-    printStatusLine("Expired", counts_subjob['EXPIRED'], num_subjob)
-    printStatusLine("Zombie", counts_subjob['ZOMBIE'], num_subjob)
-    # printStatusLine("Rest", counts_subjob['DONE'], num_subjob)
+    for key in states_subjob :
+        printStatusLine(key, counts_subjob[key], num_subjob)
+
     print '######################################'
 
     if debug :
-        print "Master"; print counts_master
-        print "Subjob"; print counts_subjob
-
+        print "Master :",; print counts_master
+        print "Subjob :",; print counts_subjob
     return
 
 def kill_job_id(job_id, verbose=False) :
