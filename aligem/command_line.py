@@ -36,8 +36,8 @@ def main() :
     verbose = args.verbose
 
 
-    # if debug :
-    if True :
+
+    if debug :
         print "=== Arguments ================================="
         print args
         print "==============================================="
@@ -51,9 +51,9 @@ def main() :
             offline = args.offline
 
             if user == None :
-                jobs.get_status(offline=offline)
+                jobs.get_status(offline=offline, debug=debug)
             else :
-                jobs.get_status(user,offline=offline)
+                jobs.get_status(user,offline=offline, debug=debug)
 
         if args.job_command == 'kill' :
             if debug : print "inside kill"

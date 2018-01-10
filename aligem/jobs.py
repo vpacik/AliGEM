@@ -153,8 +153,8 @@ def get_status(user='vpacik',debug=False,offline=False) :
     print '######################################'
 
     if debug :
-        print counts_master
-        print counts_subjob
+        print "Master"; print counts_master
+        print "Subjob"; print counts_subjob
 
     return
 
