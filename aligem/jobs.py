@@ -39,7 +39,8 @@ def fetch_jobs(user,verbose=False,offline=False) :
     """
 
     if offline :
-        with open('../jobs_string.txt','r') as local_str :
+        # NOTE / TODO: this path is not globally working; should be included from somewhere else (config files)
+        with open('/Users/vpacik/Codes/aligem/jobs_string.txt','r') as local_str :
             job_string = local_str.read()
 
     else :
