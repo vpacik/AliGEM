@@ -90,7 +90,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik',debug=False,offline=False) :
+def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
     """
     Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
@@ -135,11 +135,12 @@ def get_status(user='vpacik',debug=False,offline=False) :
         if key in states_subjob : num_rest -= value
     counts_subjob.update({'REST' : num_rest})
 
-
     # Printing status output to the user
-    def printStatusLine(label, num, num_all) :
+    def printStatusLine(label, num, num_all, only_positive=only_positive) :
         perc = -1.0
         if num_all > 0.0 : perc = 100*float(num)/num_all
+        if only_positive and num == 0 : return
+
         print '%10s:  %4d/%d  %5.1f%%' % (label, num, num_all, perc)
         return
 
@@ -152,9 +153,11 @@ def get_status(user='vpacik',debug=False,offline=False) :
     print '======= Masterjobs =============='
     for key in states_master :
         printStatusLine(key, counts_master[key], num_master)
-    print '======= Subjobs ================='
-    for key in states_subjob :
-        printStatusLine(key, counts_subjob[key], num_subjob)
+
+    if not only_positive or (only_positive and num_subjob > 0) :
+        print '======= Subjobs ================='
+        for key in states_subjob :
+            printStatusLine(key, counts_subjob[key], num_subjob)
 
     print '######################################'
 
