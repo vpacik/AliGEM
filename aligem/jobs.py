@@ -32,7 +32,7 @@ def exec_alien_cmd(process = [], verbose=False) :
         return error.output
     return
 
-def fetch_jobs(user,verbose=False,offline=False) :
+def fetch_jobs(user,verbose=False,offline=False,debug=False) :
     """
     Returns list of job dicts from Grid query for a single user
     If offline=True then '../jobs_string.txt' file is used instead of online data
@@ -54,7 +54,7 @@ def fetch_jobs(user,verbose=False,offline=False) :
     list_jobs = []
     for job in jobs :
         processed_job = process_single_job(job)
-        if validate_single_job(processed_job) : list_jobs.append(processed_job)
+        if validate_single_job(processed_job,debug=debug) : list_jobs.append(processed_job)
     return list_jobs
 
 def process_single_job(job='') :
@@ -62,7 +62,7 @@ def process_single_job(job='') :
     job = job.split("\t")
 
     if len(job) < 4 :
-        return {}
+        return None
 
     if job[4].startswith("pcapiserv") :
         job_type = 'master'
@@ -75,6 +75,11 @@ def process_single_job(job='') :
 def validate_single_job(job,debug=False) :
     """ Returns True if job is valid, False otherwise """
     isOK = True
+
+    if job is None :
+        if debug : print "invalid job"
+        return False
+
     if not job['id'].isdigit() :
         isOK = False
         if debug : print "job id '%s' not validated" % str(job['id'])
@@ -101,7 +106,10 @@ def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
 
     # Works well except for states with starts with something; ie. ERROR_*, DONE_*
 
-    jobs = fetch_jobs(str(user),offline=offline)
+    jobs = fetch_jobs(str(user),offline=offline,debug=debug)
+    if len(jobs) == 0 :
+        print "No (validated) jobs found."
+        return
 
     master = [ job['status'] for job in jobs if job['group'] == 'master' ]
     num_master = len(master)
@@ -141,7 +149,7 @@ def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
         if num_all > 0.0 : perc = 100*float(num)/num_all
         if only_positive and num == 0 : return
 
-        print '%10s:  %4d/%d  %5.1f%%' % (label, num, num_all, perc)
+        print '%10s: %5d %6.1f%%' % (label, num, perc)
         return
 
     print '######################################'
@@ -150,12 +158,12 @@ def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
     else :
         print '  Jobs status for user "%s"' % user
 
-    print '======= Masterjobs =============='
+    print '======= Masterjobs (%d) ==============' % num_master
     for key in states_master :
         printStatusLine(key, counts_master[key], num_master)
 
     if not only_positive or (only_positive and num_subjob > 0) :
-        print '======= Subjobs ================='
+        print '======= Subjobs (%d) =================' % num_subjob
         for key in states_subjob :
             printStatusLine(key, counts_subjob[key], num_subjob)
 
