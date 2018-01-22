@@ -41,8 +41,6 @@ def main() :
     debug = args.debug
     verbose = args.verbose
 
-
-
     if debug :
         print "=== Arguments ================================="
         print args
@@ -53,33 +51,25 @@ def main() :
 
         if args.job_command == 'status' :
             if debug : print "inside status"
-            user = args.user
             offline = args.offline
             only_positive = args.only_positive
 
-            if user == None :
-                jobs.get_status(offline=offline, debug=debug, only_positive=only_positive)
-            else :
-                jobs.get_status(user,offline=offline, debug=debug, only_positive=only_positive)
+            if args.user :
+                local_user = args.user
+                
+            jobs.get_status(local_user,offline=offline, debug=debug, only_positive=only_positive)
 
         if args.job_command == 'kill' :
             if debug : print "inside kill"
-            user = args.user
+            # user = args.user
 
-            if user == None :
-                jobs.kill_done(debug=debug)
-            else :
-                jobs.kill_done(user,debug=debug)
+            jobs.kill_done(local_user,debug=debug)
 
 
         if args.job_command == 'resub' :
             if debug : print "inside resubmit"
-            user = args.user
-
-            if user == None :
-                jobs.resubmit(debug=debug)
-            else :
-                jobs.resubmit(user,debug=debug)
+            # user = args.user
+            jobs.resubmit(local_user,debug=debug)
 
 
     if args.command == 'token' :
