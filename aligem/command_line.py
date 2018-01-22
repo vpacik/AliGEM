@@ -28,6 +28,7 @@ def main() :
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s)")
     # jobs_subparser_kill.add_argument("-u","--user", help="specify USER as CERN username")
 
+    jobs_subparser_resubmit = jobs_subparsers.add_parser("resub", help = "re-submit all grid job(s) in ERROR, EXPIRED or ZOMBIE state")
 
     # token parser (L1)
     # NOTE: not implemented
@@ -69,6 +70,17 @@ def main() :
                 jobs.kill_done(debug=debug)
             else :
                 jobs.kill_done(user,debug=debug)
+
+
+        if args.job_command == 'resub' :
+            if debug : print "inside resubmit"
+            user = args.user
+
+            if user == None :
+                jobs.resubmit(debug=debug)
+            else :
+                jobs.resubmit(user,debug=debug)
+
 
     if args.command == 'token' :
         print "token command not implemented (yet)"
