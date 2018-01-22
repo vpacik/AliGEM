@@ -1,10 +1,14 @@
 import jobs
 import argparse
+import subprocess
 
 def main() :
+    local_user = subprocess.check_output("whoami").strip()
+    # print "\n\nYou are logged as '%s'. If this is not your CERN username, please specify -u USER while issuing AliGEM commands" % (local_user)
+
     ### top-level group (L0)
-    parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations")
-    parser.add_argument("-u","--user", help="specify USER as CERN username")
+    parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations.")
+    parser.add_argument("-u","--user", help="specify USER as CERN username", default=local_user)
     parser.add_argument("-v","--verbose", help="produce verbose output", action="store_true")
     parser.add_argument("-d","--debug", help="debugging mode (additional printout)", action="store_true")
     parser.add_argument("--version", action="version", version='0.1', help="print current version")
