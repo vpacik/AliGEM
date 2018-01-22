@@ -223,4 +223,30 @@ def kill_done(user="vpacik", verbose=False, debug=False) :
     kill_jobs(filtered, debug=debug)
     return
 
+def resubmit(user="vpacik", verbose=False, debug=False) :
+
+    # define a list with "master" and "subjob" for sequential resubmitting
+    groups = ["master","subjob"]
+
+    for group in groups :
+        jobs_list = fetch_jobs(user,verbose=verbose,debug=debug)
+        jobs_group = filter_jobs(jobs_list,group=group)
+
+        filtered = filter_jobs(jobs_group,status="ERROR")
+        filtered.extend(filter_jobs(jobs_group,status="EXPIRED"))
+        filtered.extend(filter_jobs(jobs_group,status="ZOMBIE"))
+
+        if len(filtered) == 0 :
+            print "No %s jobs to resubmit" % str(group)
+
+        for job in filtered :
+            job_id = job['id']
+
+            if debug :
+                print job_id
+            else :
+                print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)
+
+    return
+
 # ==============================================================================
