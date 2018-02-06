@@ -3,8 +3,8 @@ import argparse
 import subprocess
 
 def main() :
-    local_user = subprocess.check_output("whoami").strip()
-    # print "\n\nYou are logged as '%s'. If this is not your CERN username, please specify -u USER while issuing AliGEM commands" % (local_user)
+    # local_user = subprocess.check_output("whoami").strip()
+    local_user = jobs.exec_alien_cmd("alien_whoami").strip()
 
     ### top-level group (L0)
     parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations.")
@@ -56,7 +56,7 @@ def main() :
 
             if args.user :
                 local_user = args.user
-                
+
             jobs.get_status(local_user,offline=offline, debug=debug, only_positive=only_positive)
 
         if args.job_command == 'kill' :

@@ -217,13 +217,13 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
 
     return filtered_jobs
 
-def kill_done(user="vpacik", verbose=False, debug=False) :
+def kill_done(user, verbose=False, debug=False) :
     filtered = filter_jobs(fetch_jobs(user), status="DONE")
     if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
     kill_jobs(filtered, debug=debug)
     return
 
-def resubmit(user="vpacik", verbose=False, debug=False) :
+def resubmit(user, verbose=False, debug=False) :
 
     # define a list with "master" and "subjob" for sequential resubmitting
     groups = ["master","subjob"]
