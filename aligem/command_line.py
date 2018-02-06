@@ -26,6 +26,7 @@ def main() :
     jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username", default=local_user)
 
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s) in DONE state")
+    jobs_subparser_kill.add_argument("-A","--all", help="kill ALL registered jobs (independent of state)", action="store_true",dest="kill_all")
     # jobs_subparser_kill.add_argument("-u","--user", help="specify USER as CERN username")
 
     jobs_subparser_resubmit = jobs_subparsers.add_parser("resub", help = "re-submit all grid job(s) in ERROR, EXPIRED or ZOMBIE state")
@@ -63,7 +64,11 @@ def main() :
             if debug : print "inside kill"
             # user = args.user
 
-            jobs.kill_done(local_user,debug=debug)
+            if args.kill_all :
+                if debug : print "kill all is ON!"
+                jobs.kill_all(local_user, debug = debug)
+            else :
+                jobs.kill_done(local_user,debug=debug)
 
 
         if args.job_command == 'resub' :

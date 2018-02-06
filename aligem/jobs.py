@@ -223,6 +223,12 @@ def kill_done(user, verbose=False, debug=False) :
     kill_jobs(filtered, debug=debug)
     return
 
+def kill_all(user, verbose=False, debug=False) :
+    filtered = filter_jobs(fetch_jobs(user),group="master")
+    if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
+    kill_jobs(filtered, debug=debug)
+    return
+
 def resubmit(user, verbose=False, debug=False) :
 
     # define a list with "master" and "subjob" for sequential resubmitting
