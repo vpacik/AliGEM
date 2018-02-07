@@ -1,4 +1,4 @@
-import jobs
+import jobs,token
 import argparse
 import subprocess
 
@@ -29,9 +29,11 @@ def main() :
     jobs_subparser_resubmit = jobs_subparsers.add_parser("resub", help = "re-submit all grid job(s) in ERROR, EXPIRED or ZOMBIE state")
 
     # token parser (L1)
-    # NOTE: not implemented
     parser_token = subparsers.add_parser("token", help="token (not implemented yet)")
-
+    token_subparsers = parser_token.add_subparsers(dest="token_command")
+    token_subparser_init = token_subparsers.add_parser("init", help="Initialize new token")
+    token_subparser_destroy = token_subparsers.add_parser("destroy", help="Destoy current token")
+    token_subparser_info = token_subparsers.add_parser("info", help="List token information")
 
 
     args = parser.parse_args()
@@ -78,7 +80,20 @@ def main() :
 
 
     if args.command == 'token' :
-        print "token command not implemented (yet)"
+        # token.info()
+        if args.token_command == "init" :
+            if not token.check() :
+                token.init()
+            else :
+                print "Valid token already exists! Destroy it first!"
+
+        if args.token_command == "destroy" :
+            token.destroy()
+
+        if args.token_command == "info" :
+            token.info()
+
+        # print "token command not implemented (yet)"
 
 
     return
