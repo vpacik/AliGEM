@@ -20,17 +20,29 @@ def exec_alien_cmd(process = [], verbose=False) :
     if not process :
         print 'Process list is empty. Nothing to execute!'
         return
+
     try :
         output = subprocess.check_output(process)
-        return output
+        return { "cmd" : process, "returncode" : 0, "output" : output }
+
     except subprocess.CalledProcessError as error :
         if(verbose) :
             print("CalledProcessError exception caught!")
             print("Error return code:\n" + str(error.returncode))
             print("Error cmd:\n" + str(error.cmd))
             print("Error output:\n" + str(error.output))
-        return error.output
-    return
+
+        return { "cmd" : error.cmd, "returncode" : error.returncode, "output" : error.output }
+
+    except OSError as error :
+        print "OSError expection caught! Unknown process '" + str(process) + "'"
+        if verbose : print error
+
+    except ValueError as error :
+        print "ValueError expection caught! Popen (likely) invoked with invalid arguments"
+        if verbose : print error
+
+    return { "cmd" : process, "returncode": None, "output" : error }
 
 def fetch_jobs(user,verbose=False,offline=False,debug=False) :
     """
@@ -44,7 +56,7 @@ def fetch_jobs(user,verbose=False,offline=False,debug=False) :
             job_string = local_str.read()
 
     else :
-        job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)
+        job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)['output']
 
     # stripping useless characters within jobs output
     job_string = job_string.replace(" ","") # removing whitespaces
@@ -176,7 +188,7 @@ def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
 
 def kill_job_id(job_id, verbose=False) :
     """ Kill a single job based on input id """
-    print exec_alien_cmd(['alien_kill',str(job_id)],verbose=verbose)
+    print exec_alien_cmd(['alien_kill',str(job_id)],verbose=verbose)['output']
 
 def kill_jobs(jobs_list,verbose=False,debug=True) :
     """ Kill ALL jobs based on provided list with (filtered) jobs. """
@@ -251,7 +263,7 @@ def resubmit(user, verbose=False, debug=False) :
             if debug :
                 print job_id
             else :
-                print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)
+                print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output']
 
     return
 

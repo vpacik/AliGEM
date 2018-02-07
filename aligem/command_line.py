@@ -4,7 +4,7 @@ import subprocess
 
 def main() :
     # local_user = subprocess.check_output("whoami").strip()
-    local_user = jobs.exec_alien_cmd("alien_whoami").strip()
+    local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
 
     ### top-level group (L0)
     parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations.")
