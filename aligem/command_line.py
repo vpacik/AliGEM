@@ -17,7 +17,6 @@ def main() :
 
     # jobs sub-parsers (L2)
     jobs_subparser_status = jobs_subparsers.add_parser("status", help = "print overview of currently registered grid jobs")
-    # jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
     jobs_subparser_status.add_argument("-o","--offline", help="running in OFFLINE mode for testing purposes", action="store_true", default=False)
     jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true", default=False)
     jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
@@ -37,60 +36,68 @@ def main() :
 
 
     args = parser.parse_args()
+    args = vars(args)
 
-    debug = args.debug
-    verbose = args.verbose
+    debug = args['debug']
+    verbose = args['verbose']
 
     if debug :
         print "=== Arguments ================================="
         print args
         print "==============================================="
 
-    if args.command == 'jobs' :
+    if args['command'] == 'jobs' :
         if debug : print "inside jobs"
 
-        if args.user :
-            local_user = args.user
-        else :
-            # local_user = subprocess.check_output("whoami").strip()
-            local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
+        # check for valid token (if not found, token-init)
+        if (token.check() == False) and ("offline" in args) and (args['offline'] == False) :
+            print "No valid token found. Initializiting new token!"
+            token.init()
 
-        if args.job_command == 'status' :
+        if "user" in args and args['user'] is not None :
+            local_user = args['user']
+        else :
+            if "offline" in args :
+                local_user = subprocess.check_output("whoami").strip()
+            else :
+                local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
+
+        if args['job_command'] == 'status' :
             if debug : print "inside status"
-            offline = args.offline
-            only_positive = args.only_positive
+            offline = args['offline']
+            only_positive = args['only_positive']
 
             jobs.get_status(local_user,offline=offline, debug=debug, only_positive=only_positive)
 
-        if args.job_command == 'kill' :
+        if args['job_command'] == 'kill' :
             if debug : print "inside kill"
             # user = args.user
 
-            if args.kill_all :
+            if args['kill_all'] :
                 if debug : print "kill all is ON!"
                 jobs.kill_all(local_user, debug = debug)
             else :
                 jobs.kill_done(local_user,debug=debug)
 
 
-        if args.job_command == 'resub' :
+        if args['job_command'] == 'resub' :
             if debug : print "inside resubmit"
             # user = args.user
             jobs.resubmit(local_user,debug=debug)
 
 
-    if args.command == 'token' :
+    if args['command'] == 'token' :
         # token.info()
-        if args.token_command == "init" :
+        if args['token_command'] == "init" :
             if not token.check() :
                 token.init()
             else :
                 print "Valid token already exists! Destroy it first!"
 
-        if args.token_command == "destroy" :
+        if args['token_command'] == "destroy" :
             token.destroy()
 
-        if args.token_command == "info" :
+        if args['token_command'] == "info" :
             token.info()
 
         # print "token command not implemented (yet)"
