@@ -206,12 +206,12 @@ def kill_jobs(jobs_list,verbose=False,debug=True) :
             kill_job_id(job_id,verbose=verbose)
     return
 
-def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
+def filter_jobs(list_jobs, group=None, status=None, server=None, user=None, verbose=False) :
     """ Returns a list with jobs passing filtering criteria """
 
     if not list_jobs : # check if list is empty
-        print 'Input job list is empty. Nothing to filter'
-        return
+        if verbose : print 'Input job list is empty. Nothing to filter'
+        return []
 
     filtered_jobs = list_jobs
 
@@ -230,13 +230,13 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None) :
     return filtered_jobs
 
 def kill_done(user, verbose=False, debug=False) :
-    filtered = filter_jobs(fetch_jobs(user), status="DONE")
+    filtered = filter_jobs(fetch_jobs(user), status="DONE", verbose=verbose)
     if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
     kill_jobs(filtered, debug=debug)
     return
 
 def kill_all(user, verbose=False, debug=False) :
-    filtered = filter_jobs(fetch_jobs(user),group="master")
+    filtered = filter_jobs(fetch_jobs(user),group="master",verbose=verbose)
     if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
     kill_jobs(filtered, debug=debug)
     return
@@ -248,14 +248,16 @@ def resubmit(user, verbose=False, debug=False) :
 
     for group in groups :
         jobs_list = fetch_jobs(user,verbose=verbose,debug=debug)
-        jobs_group = filter_jobs(jobs_list,group=group)
+        jobs_group = filter_jobs(jobs_list,group=group,verbose=verbose)
 
-        filtered = filter_jobs(jobs_group,status="ERROR")
-        filtered.extend(filter_jobs(jobs_group,status="EXPIRED"))
-        filtered.extend(filter_jobs(jobs_group,status="ZOMBIE"))
+        filtered = []
+        filtered.extend(filter_jobs(jobs_group,status="ERROR",verbose=verbose))
+        filtered.extend(filter_jobs(jobs_group,status="EXPIRED",verbose=verbose))
+        filtered.extend(filter_jobs(jobs_group,status="ZOMBIE",verbose=verbose))
 
         if len(filtered) == 0 :
-            print "No %s jobs to resubmit" % str(group)
+            print "No %s jobs to resubmit!" % str(group)
+            return
 
         for job in filtered :
             job_id = job['id']
