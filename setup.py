@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='aligem',
-      version='0.1',
+      version='1.0.0',
       description='ALICE Grid Enviroment Manager',
       long_description=readme(),
       keywords='aligem ALICE CERN high energy physics',
@@ -13,6 +13,11 @@ setup(name='aligem',
       author='Vojtech Pacik',
       author_email='vojtech.pacik@cern.ch',
       license='GPL-3.0',
+      classifiers=[
+        'Development Status :: 5 - Production/Stable'
+        'License :: OSI Approved :: GPL-3.0 License',
+        'Programming Language :: Python :: 2.7'
+      ],
       packages=['aligem'],
       test_suite='nose.collector',
       tests_require=['nose', 'nose-cover3'],
