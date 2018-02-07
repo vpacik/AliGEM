@@ -36,9 +36,38 @@ def check(debug=False,verbose=False) :
     token = jobs.exec_alien_cmd('alien-token-info',verbose)
 
     if token['returncode'] == 1 :
-        # not succesfull
+        # not succesfull (no token)
         if verbose : print "Token not validated!"
         if debug : print token
         return False
+    else :
+        # info succesfull but checking token content
+        # print " token output"
+        # print token['output']
+
+        item = token['output']
+        item = item.replace(" ","")
+        item = item.split("\n")
+        # print item
+
+        # checking host
+        if item[0].split(":")[1] == "" :
+            print item[0].split(":")[1]
+            return False
+
+        # checking Password
+        if item[4].split(":")[1] == "" :
+            print item[4].split(":")[1]
+            return False
+
+        # checking Nonce
+        if item[5].split(":")[1] == "" :
+            print item[5].split(":")[1]
+            return False
+
+        # checking SID
+        if item[6].split(":")[1] == "" :
+            print item[6].split(":")[1]
+            return False
 
     return True
