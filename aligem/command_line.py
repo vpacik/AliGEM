@@ -3,9 +3,6 @@ import argparse
 import subprocess
 
 def main() :
-    # local_user = subprocess.check_output("whoami").strip()
-    local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
-
     ### top-level group (L0)
     parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations.")
     parser.add_argument("-v","--verbose", help="produce verbose output", action="store_true")
@@ -23,7 +20,7 @@ def main() :
     # jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
     jobs_subparser_status.add_argument("-o","--offline", help="running in OFFLINE mode for testing purposes", action="store_true", default=False)
     jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true", default=False)
-    jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username", default=local_user)
+    jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
 
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s) in DONE state")
     jobs_subparser_kill.add_argument("-A","--all", help="kill ALL registered jobs (independent of state)", action="store_true",dest="kill_all")
@@ -50,13 +47,16 @@ def main() :
     if args.command == 'jobs' :
         if debug : print "inside jobs"
 
+        if args.user :
+            local_user = args.user
+        else :
+            # local_user = subprocess.check_output("whoami").strip()
+            local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
+
         if args.job_command == 'status' :
             if debug : print "inside status"
             offline = args.offline
             only_positive = args.only_positive
-
-            if args.user :
-                local_user = args.user
 
             jobs.get_status(local_user,offline=offline, debug=debug, only_positive=only_positive)
 
