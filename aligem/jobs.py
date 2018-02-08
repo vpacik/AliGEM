@@ -44,19 +44,11 @@ def exec_alien_cmd(process = [], verbose=False) :
 
     return { "cmd" : str(process), "returncode": None, "output" : str(error) }
 
-def fetch_jobs(user,verbose=False,offline=False,debug=False) :
+def fetch_jobs(user,verbose=False,debug=False) :
     """
     Returns list of job dicts from Grid query for a single user
-    If offline=True then '../jobs_string.txt' file is used instead of online data
     """
-
-    if offline :
-        # NOTE / TODO: this path is not globally working; should be included from somewhere else (config files)
-        with open('/Users/vpacik/Codes/aligem/jobs_string.txt','r') as local_str :
-            job_string = local_str.read()
-
-    else :
-        job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)['output']
+    job_string = exec_alien_cmd(['alien_top','-all_status','-user',str(user)],verbose=verbose)['output']
 
     # stripping useless characters within jobs output
     job_string = job_string.replace(" ","") # removing whitespaces
@@ -107,7 +99,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
+def get_status(user='vpacik',debug=False,only_positive=False) :
     """
     Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
@@ -118,7 +110,7 @@ def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
 
     # Works well except for states with starts with something; ie. ERROR_*, DONE_*
 
-    jobs = fetch_jobs(str(user),offline=offline,debug=debug)
+    jobs = fetch_jobs(str(user),debug=debug)
     if len(jobs) == 0 :
         print "No (validated) jobs found."
         return
@@ -165,11 +157,7 @@ def get_status(user='vpacik',debug=False,offline=False,only_positive=False) :
         return
 
     print '######################################'
-    if offline :
-        print '  Jobs status from offline file'
-    else :
-        print '  Jobs status for user "%s"' % user
-
+    print '  Jobs status for user "%s"' % user
     print '======= Masterjobs (%d) ==============' % num_master
     for key in states_master :
         printStatusLine(key, counts_master[key], num_master)
