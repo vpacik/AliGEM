@@ -4,15 +4,15 @@ import subprocess
 
 def main() :
     ### top-level group (L0)
-    parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager - toolbox for handling Grid related operations.")
+    parser = argparse.ArgumentParser(description="Welcome to AliGEM - ALICE Grid Enviroment Manager (https://github.com/vpacik/aligem)")
     parser.add_argument("-v","--verbose", help="produce verbose output", action="store_true")
     parser.add_argument("-d","--debug", help="debugging mode (additional printout)", action="store_true")
     parser.add_argument("--version", action="version", version='0.1', help="print current version")
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers(title="operations",dest="command",)
 
     ### sub-parsers
     # jobs parser (L1)
-    parser_jobs = subparsers.add_parser("jobs", help="grid jobs operations")
+    parser_jobs = subparsers.add_parser("jobs", help="Grid jobs operations")
     jobs_subparsers = parser_jobs.add_subparsers(dest="job_command")
 
     # jobs sub-parsers (L2)
@@ -28,7 +28,7 @@ def main() :
     jobs_subparser_resubmit = jobs_subparsers.add_parser("resub", help = "re-submit all grid job(s) in ERROR, EXPIRED or ZOMBIE state")
 
     # token parser (L1)
-    parser_token = subparsers.add_parser("token", help="token (not implemented yet)")
+    parser_token = subparsers.add_parser("token", help="AliEn token operations")
     token_subparsers = parser_token.add_subparsers(dest="token_command")
     token_subparser_init = token_subparsers.add_parser("init", help="Initialize new token")
     token_subparser_destroy = token_subparsers.add_parser("destroy", help="Destoy current token")

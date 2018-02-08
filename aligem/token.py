@@ -42,9 +42,6 @@ def check(debug=False,verbose=False) :
         return False
     else :
         # info succesfull but checking token content
-        # print " token output"
-        # print token['output']
-
         item = token['output']
         item = item.replace(" ","")
         item = item.split("\n")
