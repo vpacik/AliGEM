@@ -42,7 +42,7 @@ def exec_alien_cmd(process = [], verbose=False) :
         print "ValueError expection caught! Popen (likely) invoked with invalid arguments"
         if verbose : print error
 
-    return { "cmd" : process, "returncode": None, "output" : error }
+    return { "cmd" : str(process), "returncode": None, "output" : str(error) }
 
 def fetch_jobs(user,verbose=False,offline=False,debug=False) :
     """
