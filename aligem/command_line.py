@@ -1,6 +1,7 @@
 import jobs,token
 import argparse
 import subprocess
+import os
 
 def main() :
     ### top-level group (L0)
@@ -43,6 +44,11 @@ def main() :
         print "=== Arguments ================================="
         print args
         print "==============================================="
+
+    if not check_alien(debug=debug) :
+        print "AliEn not found in $PATH, please load alienv !"
+        return
+
 
     if args['command'] == 'jobs' :
         if debug : print "inside jobs"
@@ -98,3 +104,15 @@ def main() :
         # print "token command not implemented (yet)"
 
     return
+
+def check_alien(debug=False) :
+    """
+    Check if AliEn commands are available (in $PATH)
+    """
+    if debug : print "check_alien()"
+    path = os.getenv('PATH')
+
+    if "/AliEn-Runtime/" not in path :
+        return False
+
+    return True
