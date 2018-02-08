@@ -1,6 +1,7 @@
 import jobs,token
 import argparse
 import subprocess
+import os
 
 def main() :
     ### top-level group (L0)
@@ -17,9 +18,8 @@ def main() :
 
     # jobs sub-parsers (L2)
     jobs_subparser_status = jobs_subparsers.add_parser("status", help = "print overview of currently registered grid jobs")
-    jobs_subparser_status.add_argument("-o","--offline", help="running in OFFLINE mode for testing purposes", action="store_true", default=False)
-    jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true", default=False)
-    jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username")
+    jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true")
+    jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username",default=None)
 
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s) in DONE state")
     jobs_subparser_kill.add_argument("-A","--all", help="kill ALL registered jobs (independent of state)", action="store_true",dest="kill_all")
@@ -34,40 +34,41 @@ def main() :
     token_subparser_destroy = token_subparsers.add_parser("destroy", help="Destoy current token")
     token_subparser_info = token_subparsers.add_parser("info", help="List token information")
 
-
     args = parser.parse_args()
     args = vars(args)
 
     debug = args['debug']
     verbose = args['verbose']
-
+    
     if debug :
         print "=== Arguments ================================="
         print args
         print "==============================================="
 
+    if not check_alien(debug=debug) :
+        print "AliEn not found in $PATH, please load alienv !"
+        return
+
+
     if args['command'] == 'jobs' :
         if debug : print "inside jobs"
 
         # check for valid token (if not found, token-init)
-        if (token.check() == False) and ("offline" in args) and (args['offline'] == False) :
+        if (token.check() == False) :
             print "No valid token found. Initializiting new token!"
             token.init()
 
-        if "user" in args and args['user'] is not None :
-            local_user = args['user']
-        else :
-            if "offline" in args :
-                local_user = subprocess.check_output("whoami").strip()
-            else :
-                local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
+        local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
 
         if args['job_command'] == 'status' :
             if debug : print "inside status"
-            offline = args['offline']
-            only_positive = args['only_positive']
 
-            jobs.get_status(local_user,offline=offline, debug=debug, only_positive=only_positive)
+            if args['user'] is not None :
+                local_user = args['user']
+
+            if debug : print local_user
+
+            jobs.get_status(local_user, debug=debug, only_positive=args['only_positive'])
 
         if args['job_command'] == 'kill' :
             if debug : print "inside kill"
@@ -75,7 +76,7 @@ def main() :
 
             if args['kill_all'] :
                 if debug : print "kill all is ON!"
-                jobs.kill_all(local_user, debug = debug)
+                jobs.kill_all(local_user, debug=debug)
             else :
                 jobs.kill_done(local_user,debug=debug)
 
@@ -102,5 +103,16 @@ def main() :
 
         # print "token command not implemented (yet)"
 
-
     return
+
+def check_alien(debug=False) :
+    """
+    Check if AliEn commands are available (in $PATH)
+    """
+    if debug : print "check_alien()"
+    path = os.getenv('PATH')
+
+    if "/AliEn-Runtime/" not in path :
+        return False
+
+    return True

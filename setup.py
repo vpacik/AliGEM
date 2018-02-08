@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='aligem',
-      version='1.0.2',
+      version='1.0.3',
       description='ALICE Grid Enviroment Manager',
       long_description=readme(),
       keywords='aligem ALICE CERN high energy physics',
