@@ -31,7 +31,7 @@ def main() :
     parser_token = subparsers.add_parser("token", help="AliEn token operations")
     token_subparsers = parser_token.add_subparsers(dest="token_command")
     token_subparser_init = token_subparsers.add_parser("init", help="Initialize new token")
-    token_subparser_destroy = token_subparsers.add_parser("destroy", help="Destoy current token")
+    token_subparser_destroy = token_subparsers.add_parser("destroy", help="Destroy current token")
     token_subparser_info = token_subparsers.add_parser("info", help="List token information")
 
     args = parser.parse_args()
@@ -39,7 +39,7 @@ def main() :
 
     debug = args['debug']
     verbose = args['verbose']
-    
+
     if debug :
         print "=== Arguments ================================="
         print args
