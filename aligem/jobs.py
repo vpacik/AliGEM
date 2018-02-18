@@ -245,7 +245,7 @@ def resubmit(user, verbose=False, debug=False) :
 
         if len(filtered) == 0 :
             print "No %s jobs to resubmit!" % str(group)
-            return
+            continue
 
         for job in filtered :
             job_id = job['id']
