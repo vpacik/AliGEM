@@ -17,7 +17,7 @@ def main() :
     jobs_subparsers = parser_jobs.add_subparsers(dest="job_command")
 
     # jobs sub-parsers (L2)
-    jobs_subparser_status = jobs_subparsers.add_parser("status", help = "print overview of currently registered grid jobs")
+    jobs_subparser_status = jobs_subparsers.add_parser("status", description="Print out compact (colored) overview of jobs states:\n['USER'] #M(asterjob)/#S(ubjob) "+jobs.stateclr.ALL+"#ALL"+jobs.stateclr.ENDC+" ("+jobs.stateclr.DONE+"#DONE"+jobs.stateclr.ENDC+"|"+jobs.stateclr.RUNNING+"#RUNNING"+jobs.stateclr.ENDC+"|"+jobs.stateclr.ERROR+"#ERROR"+jobs.stateclr.ENDC+"|"+jobs.stateclr.REST+"#REST"+jobs.stateclr.ENDC+")", help = "print overview of currently registered grid jobs",formatter_class=argparse.RawTextHelpFormatter)
     jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username",default=None)
     jobs_subparser_status.add_argument("-f","--full", help="print detailed overview of all jobs states (also invoked by --verbose)", action="store_true")
     jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true")
