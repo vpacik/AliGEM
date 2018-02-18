@@ -18,8 +18,9 @@ def main() :
 
     # jobs sub-parsers (L2)
     jobs_subparser_status = jobs_subparsers.add_parser("status", help = "print overview of currently registered grid jobs")
-    jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true")
     jobs_subparser_status.add_argument("-u","--user", help="specify USER as CERN username",default=None)
+    jobs_subparser_status.add_argument("-f","--full", help="print detailed overview of all jobs states (also invoked by --verbose)", action="store_true")
+    jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true")
 
     jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s) in DONE state")
     jobs_subparser_kill.add_argument("-A","--all", help="kill ALL registered jobs (independent of state)", action="store_true",dest="kill_all")
@@ -75,8 +76,9 @@ def main() :
                 local_user = args['user']
 
             if debug : print local_user
+            if not verbose and args['full'] is True : verbose = True
 
-            jobs.get_status(local_user, debug=debug, only_positive=args['only_positive'])
+            jobs.get_status(local_user, debug=debug, verbose=verbose,only_positive=args['only_positive'])
 
         if args['job_command'] == 'kill' :
             if debug : print "inside kill"
