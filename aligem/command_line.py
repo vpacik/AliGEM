@@ -9,7 +9,7 @@ def main() :
     parser.add_argument("-v","--verbose", help="produce verbose output", action="store_true")
     parser.add_argument("-d","--debug", help="debugging mode (additional printout)", action="store_true")
     parser.add_argument("--version", action="version", version='0.1', help="print current version")
-    subparsers = parser.add_subparsers(title="operations",dest="command",)
+    subparsers = parser.add_subparsers(title="operations",dest="command")
 
     ### sub-parsers
     # jobs parser (L1)
@@ -35,7 +35,7 @@ def main() :
     token_subparser_info = token_subparsers.add_parser("info", help="List token information")
 
     args = parser.parse_args()
-    args = vars(args)
+    args = vars(args) # make an dictionary out of namespace
 
     debug = args['debug']
     verbose = args['verbose']
@@ -45,13 +45,21 @@ def main() :
         print args
         print "==============================================="
 
+    # check if alien is within the $PATH
     if not check_alien(debug=debug) :
         print "AliEn not found in $PATH, please load alienv !"
         return
 
+    if 'command' not in args :
+        print "Something went wrong, no 'command' argument parsed."
+        return
 
     if args['command'] == 'jobs' :
         if debug : print "inside jobs"
+
+        if 'job_command' not in args :
+            print "Something went wrong, no 'job_command' argument parsed."
+            return
 
         # check for valid token (if not found, token-init)
         if (token.check() == False) :
@@ -74,10 +82,11 @@ def main() :
             if debug : print "inside kill"
             # user = args.user
 
-            if args['kill_all'] :
+            if args['kill_all'] == True :
                 if debug : print "kill all is ON!"
                 jobs.kill_all(local_user, debug=debug)
             else :
+                if debug : print "kill done only"
                 jobs.kill_done(local_user,debug=debug)
 
 
@@ -88,7 +97,10 @@ def main() :
 
 
     if args['command'] == 'token' :
-        # token.info()
+        if 'token_command' not in args :
+            print "Something went wrong, no 'token_command' argument parsed."
+            return
+
         if args['token_command'] == "init" :
             if not token.check() :
                 token.init()
@@ -100,9 +112,6 @@ def main() :
 
         if args['token_command'] == "info" :
             token.info()
-
-        # print "token command not implemented (yet)"
-
     return
 
 def check_alien(debug=False) :
