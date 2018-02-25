@@ -256,8 +256,8 @@ def kill_all(user, verbose=False, debug=False) :
     return
 
 def resubmit(user, verbose=False, debug=False) :
+    """ Resubmit all jobs in error (ERROR, EXPIRED, ZOMBIE) states. This is done sequentially: first MASTER then SUBJOB jobs"""
 
-    # define a list with "master" and "subjob" for sequential resubmitting
     groups = ["master","subjob"]
 
     for group in groups :
@@ -277,9 +277,8 @@ def resubmit(user, verbose=False, debug=False) :
             job_id = job['id']
 
             if debug :
-                print job_id
-            else :
-                print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output']
+                print "Resubmitting job id %s" % str(job_id)
+            print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output']
 
     return
 
