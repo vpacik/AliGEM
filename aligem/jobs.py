@@ -243,13 +243,30 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None, verb
 
     return filtered_jobs
 
-def kill_done(user, verbose=False, debug=False) :
-    filtered = filter_jobs(fetch_jobs(user), status="DONE", verbose=verbose)
-    if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
-    kill_jobs(filtered, debug=debug)
+def kill_done(user, resub=False, verbose=False, debug=False) :
+    """
+    Kill jobs in DONE state. If resub=True, jobs in error states are resubmitted first, and then master and subjobs are
+    killed sequentially. If resub=False, only subjobs are killed avoiding killing master jobs with failed subjobs (see NB).
+    NB: Do not kill master jobs first (ala resubmit()) since master job is in done state even if subjobs are in ERROR!
+    """
+
+    if resub == True :
+        groups = ["master","subjob"]
+        resubmit(user=user, verbose=verbose, debug=debug)
+        if debug : print "Resubmitted"
+    else :
+        groups = ["subjob"]
+
+    for group in groups :
+        jobs_list = fetch_jobs(user,verbose=verbose,debug=debug)
+        filtered = filter_jobs(jobs_list,group=group, status="DONE",verbose=verbose)
+
+        if verbose : print "Number of %s jobs to be deleted: %d " % str(group),len(filtered)
+        kill_jobs(filtered, debug=debug)
     return
 
 def kill_all(user, verbose=False, debug=False) :
+    """ Kill ALL jobs independent of state """
     filtered = filter_jobs(fetch_jobs(user),group="master",verbose=verbose)
     if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
     kill_jobs(filtered, debug=debug)
@@ -257,7 +274,6 @@ def kill_all(user, verbose=False, debug=False) :
 
 def resubmit(user, verbose=False, debug=False) :
     """ Resubmit all jobs in error (ERROR, EXPIRED, ZOMBIE) states. This is done sequentially: first MASTER then SUBJOB jobs"""
-
     groups = ["master","subjob"]
 
     for group in groups :

@@ -22,7 +22,8 @@ def main() :
     jobs_subparser_status.add_argument("-f","--full", help="print detailed overview of all jobs states (also invoked by --verbose)", action="store_true")
     jobs_subparser_status.add_argument("--only-positive", help="print only states with at least 1 (sub)job", action="store_true")
 
-    jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid job(s) in DONE state")
+    jobs_subparser_kill = jobs_subparsers.add_parser("kill", help = "kill grid (sub)job(s) in DONE state")
+    jobs_subparser_kill.add_argument("-r","--resub", help="resubmit failed jobs prior to sequential killing", action="store_true",dest="kill_resub")
     jobs_subparser_kill.add_argument("-A","--all", help="kill ALL registered jobs (independent of state)", action="store_true",dest="kill_all")
     # jobs_subparser_kill.add_argument("-u","--user", help="specify USER as CERN username")
 
@@ -89,7 +90,7 @@ def main() :
                 jobs.kill_all(local_user, debug=debug)
             else :
                 if debug : print "kill done only"
-                jobs.kill_done(local_user,debug=debug)
+                jobs.kill_done(local_user,resub=args['kill_resub'], debug=debug)
 
 
         if args['job_command'] == 'resub' :
