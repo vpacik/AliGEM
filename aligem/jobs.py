@@ -4,6 +4,14 @@ import subprocess
 import argparse
 from collections import Counter
 
+class stateclr :
+    """ Object with defined output colors for job states for terminal (ASCII) """
+    ALL = '\033[1;35m'
+    DONE = '\033[92m'
+    RUNNING = '\033[36m'
+    ERROR = '\033[91m'
+    REST = '\033[93m'
+    ENDC = '\033[0m'
 
 def main() :
     print "Welcome to AliGEM | Jobs"
@@ -99,7 +107,7 @@ def validate_single_job(job,debug=False) :
     if debug and (isOK == False) : print(job)
     return isOK
 
-def get_status(user='vpacik',debug=False,only_positive=False) :
+def get_status(user='vpacik',verbose=False,debug=False,only_positive=False) :
     """
     Fetching jobs from Grid servers, sorting them according to their status and prints brief overview
     """
@@ -131,6 +139,24 @@ def get_status(user='vpacik',debug=False,only_positive=False) :
     for key,value in counts_subjob.iteritems() :
         if key.startswith("ERROR") : counts_subjob += Counter({'ERROR_ALL' : value})
         if key.startswith("DONE") : counts_subjob += Counter({'DONE_ALL' : value})
+
+    # printing short (one-line) version of status
+    if not verbose :
+        # print " M %d (D%d|R%d|E%d) S %d (D%d|R%d|E%d) " % (num_master,counts_master['DONE_ALL'],counts_master['RUNNING'],counts_master['ERROR_ALL'], num_subjob, counts_subjob['DONE_ALL'],counts_subjob['RUNNING'],counts_subjob['ERROR_ALL'])
+        out = "--- Jobs status ['%s'] " % str(user)
+        out += "#M "+stateclr.ALL + str(num_master) + stateclr.ENDC +" ("
+        out += stateclr.DONE + str(counts_master['DONE_ALL']) + stateclr.ENDC + "|"
+        out += stateclr.RUNNING + str(counts_master['RUNNING']) + stateclr.ENDC + "|"
+        out += stateclr.ERROR + str(counts_master['ERROR_ALL']) + stateclr.ENDC + "|"
+        out += stateclr.REST + str(num_master - counts_master['DONE_ALL'] - counts_master['RUNNING'] - counts_master['ERROR_ALL']) + stateclr.ENDC+ ")"
+        out += " #S "+stateclr.ALL + str(num_subjob) + stateclr.ENDC +" ("
+        out += stateclr.DONE + str(counts_subjob['DONE_ALL']) + stateclr.ENDC + "|"
+        out += stateclr.RUNNING + str(counts_subjob['RUNNING']) + stateclr.ENDC + "|"
+        out += stateclr.ERROR + str(counts_subjob['ERROR_ALL']) + stateclr.ENDC + "|"
+        out += stateclr.REST + str(num_subjob - counts_subjob['DONE_ALL'] - counts_subjob['RUNNING'] - counts_subjob['ERROR_ALL']) + stateclr.ENDC+")"
+
+        print out
+        return
 
     # lists of job states used for ordered printing (NB: counts.keys() could be used instead, however it will be "randomly" ordered)
     states_master = [ "DONE_ALL", "SPLIT", "INSERTING", "RUNNING", "SAVING", "SAVED", "ERROR_ALL", "ZOMBIE", "REST"]
@@ -217,21 +243,37 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None, verb
 
     return filtered_jobs
 
-def kill_done(user, verbose=False, debug=False) :
-    filtered = filter_jobs(fetch_jobs(user), status="DONE", verbose=verbose)
-    if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
-    kill_jobs(filtered, debug=debug)
+def kill_done(user, resub=False, verbose=False, debug=False) :
+    """
+    Kill jobs in DONE state. If resub=True, jobs in error states are resubmitted first, and then master and subjobs are
+    killed sequentially. If resub=False, only subjobs are killed avoiding killing master jobs with failed subjobs (see NB).
+    NB: Do not kill master jobs first (ala resubmit()) since master job is in done state even if subjobs are in ERROR!
+    """
+
+    if resub == True :
+        groups = ["master","subjob"]
+        resubmit(user=user, verbose=verbose, debug=debug)
+        if debug : print "Resubmitted"
+    else :
+        groups = ["subjob"]
+
+    for group in groups :
+        jobs_list = fetch_jobs(user,verbose=verbose,debug=debug)
+        filtered = filter_jobs(jobs_list,group=group, status="DONE",verbose=verbose)
+
+        if verbose : print "Number of %s jobs to be deleted: %d " % str(group),len(filtered)
+        kill_jobs(filtered, debug=debug)
     return
 
 def kill_all(user, verbose=False, debug=False) :
+    """ Kill ALL jobs independent of state """
     filtered = filter_jobs(fetch_jobs(user),group="master",verbose=verbose)
     if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
     kill_jobs(filtered, debug=debug)
     return
 
 def resubmit(user, verbose=False, debug=False) :
-
-    # define a list with "master" and "subjob" for sequential resubmitting
+    """ Resubmit all jobs in error (ERROR, EXPIRED, ZOMBIE) states. This is done sequentially: first MASTER then SUBJOB jobs"""
     groups = ["master","subjob"]
 
     for group in groups :
@@ -245,15 +287,14 @@ def resubmit(user, verbose=False, debug=False) :
 
         if len(filtered) == 0 :
             print "No %s jobs to resubmit!" % str(group)
-            return
+            continue
 
         for job in filtered :
             job_id = job['id']
 
             if debug :
-                print job_id
-            else :
-                print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output']
+                print "Resubmitting job id %s" % str(job_id)
+            print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output']
 
     return
 
