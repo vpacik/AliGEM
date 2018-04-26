@@ -5,16 +5,20 @@ import jobs
 def main() :
     print "Token.main() says hi"
 
-def init(debug=False, verbose=False) :
+def init(force=False, debug=False, verbose=False) :
     if debug : print "init inside"
-    output = jobs.exec_alien_cmd('alien-token-init',verbose)
+    if (not force) and check():
+        print "Valid token already exists! Destroy it first!"
 
-    if output['returncode'] == 0 :
-        print "Token succesfully initialized!"
     else :
-        print "Token NOT initialized!"
-        if verbose :
-            print output['output'].strip()
+        output = jobs.exec_alien_cmd('alien-token-init',verbose)
+
+        if output['returncode'] == 0 :
+            print "Token succesfully initialized!"
+        else :
+            print "Token NOT initialized!"
+            if verbose :
+                print output['output'].strip()
 
 def info(debug=False, verbose=False) :
     if debug : print "token.info()"

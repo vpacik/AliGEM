@@ -33,6 +33,8 @@ def main() :
     parser_token = subparsers.add_parser("token", help="AliEn token operations")
     token_subparsers = parser_token.add_subparsers(dest="token_command")
     token_subparser_init = token_subparsers.add_parser("init", help="Initialize new token")
+    token_subparser_init.add_argument("-f","--force", help="Force initialising no matter if a token already exists (by destroying it first)", action="store_true", dest="init_force")
+
     token_subparser_destroy = token_subparsers.add_parser("destroy", help="Destroy current token")
     token_subparser_info = token_subparsers.add_parser("info", help="List token information")
 
@@ -105,10 +107,7 @@ def main() :
             return
 
         if args['token_command'] == "init" :
-            if not token.check() :
-                token.init()
-            else :
-                print "Valid token already exists! Destroy it first!"
+            token.init(force=args['init_force'], debug=debug, verbose=verbose)
 
         if args['token_command'] == "destroy" :
             token.destroy()
