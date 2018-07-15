@@ -1,10 +1,13 @@
 # Jobs handling suite
 
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import subprocess
 import argparse
 from collections import Counter
 
-class stateclr :
+class stateclr(object) :
     """ Object with defined output colors for job states for terminal (ASCII) """
     ALL = '\033[1;35m'
     DONE = '\033[92m'
@@ -14,7 +17,7 @@ class stateclr :
     ENDC = '\033[0m'
 
 def main() :
-    print "Welcome to AliGEM | Jobs"
+    print("Welcome to AliGEM | Jobs")
 
 def exec_alien_cmd(process = [], verbose=False) :
     """
@@ -26,12 +29,13 @@ def exec_alien_cmd(process = [], verbose=False) :
     """
 
     if not process :
-        print 'Process list is empty. Nothing to execute!'
+        print('Process list is empty. Nothing to execute!')
         return
 
     try :
         output = subprocess.check_output(process)
-        return { "cmd" : process, "returncode" : 0, "output" : output }
+        # print(output)
+        return { "cmd" : process, "returncode" : 0, "output" : output.decode('utf-8') }
 
     except subprocess.CalledProcessError as error :
         if(verbose) :
@@ -40,15 +44,15 @@ def exec_alien_cmd(process = [], verbose=False) :
             print("Error cmd:\n" + str(error.cmd))
             print("Error output:\n" + str(error.output))
 
-        return { "cmd" : error.cmd, "returncode" : error.returncode, "output" : error.output }
+        return { "cmd" : error.cmd, "returncode" : error.returncode, "output" : error.output.decode('utf-8') }
 
     except OSError as error :
-        print "OSError expection caught! Unknown process '" + str(process) + "'"
-        if verbose : print error
+        print("OSError expection caught! Unknown process '" + str(process) + "'")
+        if verbose : print(error)
 
     except ValueError as error :
-        print "ValueError expection caught! Popen (likely) invoked with invalid arguments"
-        if verbose : print error
+        print("ValueError expection caught! Popen (likely) invoked with invalid arguments")
+        if verbose : print(error)
 
     return { "cmd" : str(process), "returncode": None, "output" : str(error) }
 
@@ -89,20 +93,20 @@ def validate_single_job(job,debug=False) :
     isOK = True
 
     if job is None :
-        if debug : print "invalid job"
+        if debug : print("invalid job")
         return False
 
     if not job['id'].isdigit() :
         isOK = False
-        if debug : print "job id '%s' not validated" % str(job['id'])
+        if debug : print("job id '%s' not validated" % str(job['id']))
 
     if ( (job['group'] == 'master') and (not job['server'].startswith('pcapiserv')) ) :
         isOK = False
-        if debug : print "job group '%s' not validated" % job['group']
+        if debug : print("job group '%s' not validated" % job['group'])
 
     if (job['group'] == 'subjob') and (not job['server'].startswith('aliendb')) :
         isOK = False
-        if debug : print "job group '%s' not validated" % job['group']
+        if debug : print("job group '%s' not validated" % job['group'])
 
     if debug and (isOK == False) : print(job)
     return isOK
@@ -113,14 +117,14 @@ def get_status(user='vpacik',verbose=False,debug=False,only_positive=False) :
     """
 
     if user == None :
-        print 'User not specified. This might take long time. Aborted!'
+        print("User not specified. This might take long time. Aborted!")
         return
 
     # Works well except for states with starts with something; ie. ERROR_*, DONE_*
 
     jobs = fetch_jobs(str(user),debug=debug)
     if len(jobs) == 0 :
-        print "No (validated) jobs found."
+        print("No (validated) jobs found.")
         return
 
     master = [ job['status'] for job in jobs if job['group'] == 'master' ]
@@ -132,17 +136,17 @@ def get_status(user='vpacik',verbose=False,debug=False,only_positive=False) :
     counts_subjob = Counter(sub_jobs)
 
     # getting general counts of finer split elements (such as ERROR_* and DONE_*)
-    for key,value in counts_master.iteritems() :
+    for key,value in list(counts_master.items()) :
         if key.startswith("ERROR") : counts_master += Counter({'ERROR_ALL' : value})
         if key.startswith("DONE") : counts_master += Counter({'DONE_ALL' : value})
 
-    for key,value in counts_subjob.iteritems() :
+    for key,value in list(counts_subjob.items()) :
         if key.startswith("ERROR") : counts_subjob += Counter({'ERROR_ALL' : value})
         if key.startswith("DONE") : counts_subjob += Counter({'DONE_ALL' : value})
 
     # printing short (one-line) version of status
     if not verbose :
-        # print " M %d (D%d|R%d|E%d) S %d (D%d|R%d|E%d) " % (num_master,counts_master['DONE_ALL'],counts_master['RUNNING'],counts_master['ERROR_ALL'], num_subjob, counts_subjob['DONE_ALL'],counts_subjob['RUNNING'],counts_subjob['ERROR_ALL'])
+        # print(" M %d (D%d|R%d|E%d) S %d (D%d|R%d|E%d) " % (num_master,counts_master['DONE_ALL'],counts_master['RUNNING'],counts_master['ERROR_ALL'], num_subjob, counts_subjob['DONE_ALL'],counts_subjob['RUNNING'],counts_subjob['ERROR_ALL'])
         out = "--- Jobs status ['%s'] " % str(user)
         out += "#M "+stateclr.ALL + str(num_master) + stateclr.ENDC +" ("
         out += stateclr.DONE + str(counts_master['DONE_ALL']) + stateclr.ENDC + "|"
@@ -155,7 +159,7 @@ def get_status(user='vpacik',verbose=False,debug=False,only_positive=False) :
         out += stateclr.ERROR + str(counts_subjob['ERROR_ALL']) + stateclr.ENDC + "|"
         out += stateclr.REST + str(num_subjob - counts_subjob['DONE_ALL'] - counts_subjob['RUNNING'] - counts_subjob['ERROR_ALL']) + stateclr.ENDC+")"
 
-        print out
+        print(out)
         return
 
     # lists of job states used for ordered printing (NB: counts.keys() could be used instead, however it will be "randomly" ordered)
@@ -164,12 +168,12 @@ def get_status(user='vpacik',verbose=False,debug=False,only_positive=False) :
 
     # estimating REST state (one not listed (and thus printed) in above lists)
     num_rest = num_master
-    for key, value in counts_master.iteritems() :
+    for key, value in list(counts_master.items()) :
         if key in states_master : num_rest -= value
     counts_master.update({'REST' : num_rest})
 
     num_rest = num_subjob
-    for key, value in counts_subjob.iteritems() :
+    for key, value in list(counts_subjob.items()) :
         if key in states_subjob : num_rest -= value
     counts_subjob.update({'REST' : num_rest})
 
@@ -179,43 +183,43 @@ def get_status(user='vpacik',verbose=False,debug=False,only_positive=False) :
         if num_all > 0.0 : perc = 100*float(num)/num_all
         if only_positive and num == 0 : return
 
-        print '%10s: %5d %6.1f%%' % (label, num, perc)
+        print("%10s: %5d %6.1f%%" % (label, num, perc))
         return
 
-    print '######################################'
-    print '  Jobs status for user "%s"' % user
-    print '======= Masterjobs (%d) ==============' % num_master
+    print("######################################")
+    print("  Jobs status for user '%s'" % user)
+    print("======= Masterjobs (%d) ==============" % num_master)
     for key in states_master :
         printStatusLine(key, counts_master[key], num_master)
 
     if not only_positive or (only_positive and num_subjob > 0) :
-        print '======= Subjobs (%d) =================' % num_subjob
+        print("======= Subjobs (%d) =================" % num_subjob)
         for key in states_subjob :
             printStatusLine(key, counts_subjob[key], num_subjob)
 
-    print '######################################'
+    print('######################################')
 
     if debug :
-        print "Master :",; print counts_master
-        print "Subjob :",; print counts_subjob
+        print("Master :"); print(counts_master)
+        print("Subjob :"); print(counts_subjob)
     return
 
 def kill_job_id(job_id, verbose=False) :
     """ Kill a single job based on input id """
-    print exec_alien_cmd(['alien_kill',str(job_id)],verbose=verbose)['output']
+    print(exec_alien_cmd(['alien_kill',str(job_id)],verbose=verbose)['output'])
 
 def kill_jobs(jobs_list,verbose=False,debug=True) :
     """ Kill ALL jobs based on provided list with (filtered) jobs. """
     if not jobs_list :
-        print 'List of jobs is empty. Nothing to kill'
+        print("List of jobs is empty. Nothing to kill")
         return
 
     for job in jobs_list :
         job_id = job['id']
 
         if debug :
-            print 'Job ID to kill %s (would be killed, running in debug mode)' % (job_id)
-            print job
+            print("Job ID to kill %s (would be killed, running in debug mode)" % (job_id))
+            print(job)
         else :
             kill_job_id(job_id,verbose=verbose)
     return
@@ -224,7 +228,7 @@ def filter_jobs(list_jobs, group=None, status=None, server=None, user=None, verb
     """ Returns a list with jobs passing filtering criteria """
 
     if not list_jobs : # check if list is empty
-        if verbose : print 'Input job list is empty. Nothing to filter'
+        if verbose : print("Input job list is empty. Nothing to filter")
         return []
 
     filtered_jobs = list_jobs
@@ -253,7 +257,7 @@ def kill_done(user, resub=False, verbose=False, debug=False) :
     if resub == True :
         groups = ["master","subjob"]
         resubmit(user=user, verbose=verbose, debug=debug)
-        if debug : print "Resubmitted"
+        if debug : print("Resubmitted")
     else :
         groups = ["subjob"]
 
@@ -261,14 +265,14 @@ def kill_done(user, resub=False, verbose=False, debug=False) :
         jobs_list = fetch_jobs(user,verbose=verbose,debug=debug)
         filtered = filter_jobs(jobs_list,group=group, status="DONE",verbose=verbose)
 
-        if verbose : print "Number of %s jobs to be deleted: %d " % str(group),len(filtered)
+        if verbose : print(("Number of %s jobs to be deleted: %d " % str(group),len(filtered)))
         kill_jobs(filtered, debug=debug)
     return
 
 def kill_all(user, verbose=False, debug=False) :
     """ Kill ALL jobs independent of state """
     filtered = filter_jobs(fetch_jobs(user),group="master",verbose=verbose)
-    if verbose : print "Number of jobs to be deleted: %d " % len(filtered)
+    if verbose : print("Number of jobs to be deleted: %d " % len(filtered))
     kill_jobs(filtered, debug=debug)
     return
 
@@ -286,15 +290,15 @@ def resubmit(user, verbose=False, debug=False) :
         filtered.extend(filter_jobs(jobs_group,status="ZOMBIE",verbose=verbose))
 
         if len(filtered) == 0 :
-            print "No %s jobs to resubmit!" % str(group)
+            print("No %s jobs to resubmit!" % str(group))
             continue
 
         for job in filtered :
             job_id = job['id']
 
             if debug :
-                print "Resubmitting job id %s" % str(job_id)
-            print exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output']
+                print("Resubmitting job id %s" % str(job_id))
+            print(exec_alien_cmd(['alien_resubmit',str(job_id)],verbose=verbose)['output'])
 
     return
 

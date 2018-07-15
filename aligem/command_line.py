@@ -1,4 +1,6 @@
-import jobs,token
+from __future__ import print_function
+from __future__ import absolute_import
+from . import jobs,token
 import argparse
 import subprocess
 import os
@@ -45,65 +47,65 @@ def main() :
     verbose = args['verbose']
 
     if debug :
-        print "=== Arguments ================================="
-        print args
-        print "==============================================="
+        print("=== Arguments =================================")
+        print(args)
+        print("===============================================")
 
     # check if alien is within the $PATH
     if not check_alien(debug=debug) :
-        print "AliEn not found in $PATH, please load alienv !"
+        print("AliEn not found in $PATH, please load alienv !")
         return
 
     if 'command' not in args :
-        print "Something went wrong, no 'command' argument parsed."
+        print("Something went wrong, no 'command' argument parsed.")
         return
 
     if args['command'] == 'jobs' :
-        if debug : print "inside jobs"
+        if debug : print("inside jobs")
 
         if 'job_command' not in args :
-            print "Something went wrong, no 'job_command' argument parsed."
+            print("Something went wrong, no 'job_command' argument parsed.")
             return
 
         # check for valid token (if not found, token-init)
         if (token.check() == False) :
-            print "No valid token found. Initializiting new token!"
+            print("No valid token found. Initializiting new token!")
             token.init()
 
         local_user = jobs.exec_alien_cmd("alien_whoami")['output'].strip()
 
         if args['job_command'] == 'status' :
-            if debug : print "inside status"
+            if debug : print("inside status")
 
             if args['user'] is not None :
                 local_user = args['user']
 
-            if debug : print local_user
+            if debug : print(local_user)
             if not verbose and args['full'] is True : verbose = True
 
             jobs.get_status(local_user, debug=debug, verbose=verbose,only_positive=args['only_positive'])
 
         if args['job_command'] == 'kill' :
-            if debug : print "inside kill"
+            if debug : print("inside kill")
             # user = args.user
 
             if args['kill_all'] == True :
-                if debug : print "kill all is ON!"
+                if debug : print("kill all is ON!")
                 jobs.kill_all(local_user, debug=debug)
             else :
-                if debug : print "kill done only"
+                if debug : print("kill done only")
                 jobs.kill_done(local_user,resub=args['kill_resub'], debug=debug)
 
 
         if args['job_command'] == 'resub' :
-            if debug : print "inside resubmit"
+            if debug : print("inside resubmit")
             # user = args.user
             jobs.resubmit(local_user,debug=debug)
 
 
     if args['command'] == 'token' :
         if 'token_command' not in args :
-            print "Something went wrong, no 'token_command' argument parsed."
+            print("Something went wrong, no 'token_command' argument parsed.")
             return
 
         if args['token_command'] == "init" :
@@ -120,7 +122,7 @@ def check_alien(debug=False) :
     """
     Check if AliEn commands are available (in $PATH)
     """
-    if debug : print "check_alien()"
+    if debug : print("check_alien()")
     path = os.getenv('PATH')
 
     if "/AliEn-Runtime/" not in path :
